@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <title>Karaoké</title>
+    <style>
+      html {
+        height: 100%;
+      }
+      body {
+        height: 100%;
+        margin: 0; padding: 0;
+        background: #000;
+      }
+      #canvas {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      #background {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      #webcam {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      #lyrics {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: transparent;
+      }
+    </style>
+  </head>
+
+  <body>
+    <canvas id="canvas"></canvas>
+    <canvas id="background"></canvas>
+    <canvas id="webcam"></canvas>
+    <canvas id="lyrics"></canvas>
+    <script type="module">
+      import Karaoke from "./karaoke.js";
+
+      let karaoke = new Karaoke (canvas);
+
+      window.addEventListener ('message', e => {
+        let m = e.data;
+        switch (m.type)
+        {
+          case 'play':
+            switch (m.song.type)
+            {
+              case 'mp3+cdg':
+                karaoke.play_cdg (m.song.audio, m.song.lyrics);
+                break;
+
+              case 'video':
+                karaoke.play_video (m.song.video);
+                break;
+
+              default:
+                console.log (m.song);
+            }
+            break;
+
+
+          case 'stop':
+            karaoke.stop ();
+            break;
+
+          case 'chroma-webcam':
+            console.log (m);
+            if (karaoke.mix)
+              karaoke.mix.chroma_webcam = m.value;
+            break;
+
+          default:
+            console.log (m);
+        }
+      });
+    </script>
+  </body>
+</html>
