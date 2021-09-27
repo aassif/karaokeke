@@ -17,54 +17,77 @@
         height: 100%;
         margin: 0; padding: 0;
       }
-      #webcam {
-        position: fixed;
-        top: 10px;
-        right: 10px;
-        width: 200px;
-        height: 150px;
+      #videos {
+        display: flex;
+        flex-direction: row;
+      }
+      #videos video,
+      #videos canvas {
+        transform: rotateY(180deg);
+        max-height: 200px;
+        object-fit: contain;
       }
     </style>
   </head>
 
   <body>
     <button id="stop">STOP</button>
+    <div id="videos"></div>
     <script type="module">
-      import Webcam from "./webcam.js";
+      import * as media  from "./media.js";
+      import Webcam      from "./webcam.js";
+      import VideoChroma from "./video-chroma.js";
 
       function str (s)
       {
         return s.normalize ('NFD').replace (/\p{Diacritic}/gu, '').toLowerCase ();
       }
-
       console.log (str ('Beyoncé'));
 
-      let options = null
-      //let options = 'width=640,height=480,location=no,resizable=yes';
-      let karaoke = window.open ('karaoke.html', 'Karaoke', options);
+      let karaoke = window.open ('karaoke.html', 'Karaoke');
       if (karaoke != null)
       {
         let constraints = {audio: false, video: {width: {min: 1280, ideal: 1920}, height: {min: 720, ideal: 1080}}};
         let webcam = new Webcam (constraints);
-        webcam.video.id = 'webcam';
+        webcam.video.id = "webcam";
+        let videos = document.getElementById ('videos');
+        videos.appendChild (webcam.video);
 
-        webcam.video.onclick = e => {
-          console.log (e);
+        webcam.ready.then (() => {
+          webcam.video.play ();
+          let chroma = new VideoChroma (webcam.video);
+          videos.appendChild (chroma.canvas);
 
-          let canvas = document.createElement ('canvas');
-          let w = canvas.width  = webcam.video.clientWidth;
-          let h = canvas.height = webcam.video.clientHeight;
-          //document.body.appendChild (canvas);
-          //console.log (w, h);
+          webcam.video.onclick = e => {
+            console.log (e);
+            console.log (e.offsetX, e.offsetY);
+            console.log (getComputedStyle (e.target));
 
-          let context = canvas.getContext ('2d');
-          context.drawImage (webcam.video, 0, 0, w, h);
-          let [r, g, b] = context.getImageData (e.offsetX, e.offsetY, 1, 1).data;
-          console.log (r, g, b);
-          karaoke.postMessage ({type: 'chroma-webcam', value: [r, g, b]});
-        };
+            let canvas = document.createElement ('canvas');
+            let w = canvas.width  = webcam.video.clientWidth;
+            let h = canvas.height = webcam.video.clientHeight;
+            //document.body.appendChild (canvas);
+            //console.log (w, h);
 
-        document.body.appendChild (webcam.video);
+            let context = canvas.getContext ('2d');
+            context.drawImage (webcam.video, 0, 0, w, h);
+            let [r, g, b] = context.getImageData (e.offsetX, e.offsetY, 1, 1).data;
+            console.log (r, g, b);
+
+            chroma.chroma_key = [r, g, b];
+            karaoke.postMessage ({type: 'chroma-key', value: [r, g, b]});
+          };
+        });
+
+        let test = document.createElement ('video');
+        test.muted = true;
+        test.onclick = media.ONCLICK (test, (r, g, b) => console.log (r, g, b));
+        media.LOAD (test, 'songs/garou-sous_le_vent.mp4').
+          then (() => {
+            test.play ();
+            document.body.appendChild (test);
+          });
+        
 
         fetch ('songs.json').
           then (r => r.json ()).
@@ -74,8 +97,8 @@
               let button = document.createElement ('button');
               //button.innerHTML = song.artist + ' - ' + song.title;
               let img = document.createElement ('img');
-              img.width = 200;
-              img.height = 200;
+              img.width = 150;
+              img.height = 150;
               img.src = song.icon;
               button.appendChild (img);
               button.onclick = () => karaoke.postMessage ({type: 'play', song});

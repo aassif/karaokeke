@@ -1,39 +1,26 @@
-import Webcam    from "./webcam.js";
-import LyricsCDG from "./lyrics-cdg.js";
-import VideoMix  from "./video-mix.js";
-
-function LOAD_MEDIA (media, path)
-{
-  let promise = new Promise (resolve => {
-    media.addEventListener ('canplaythrough', resolve);
-  });
-
-  media.src = path;
-  return promise;
-}
+import Webcam        from "./webcam.js";
+import LyricsCDG     from "./lyrics-cdg.js";
+//import VideoMix      from "./video-mix.js";
+import VideoChroma   from "./video-chroma.js";
+import VideoKaraFun  from "./video-karafun.js";
+import VideoSingKing from "./video-singking.js";
+import * as media    from "./media.js";
 
 class Karaoke
 {
-  constructor (canvas)
+  constructor ()
   {
-    this.canvas = canvas;
-
-/*
-    let lyrics = new LyricsCDG ();
-    this.lyrics = lyrics;
-
-    let audio = document.createElement ('audio');
-    this.audio = audio;
-*/
-
     let constraints = {audio: false, video: true};
-    let webcam = new Webcam (constraints);
-    this.webcam = webcam;
+    this.webcam = new Webcam (constraints);
+    this.webcam.ready.then (() => {
+      this.webcam.video.play ();
+      this.chroma = new VideoChroma (this.webcam.video);
+      let w = document.getElementById ('webcam');
+      w.appendChild (this.chroma.canvas);
+    });
 
-    let background = document.createElement ('video');
-    background.muted = true;
-    background.loop = true;
-    this.background = background;
+    this.lyrics = document.getElementById ('lyrics');
+    this.background = document.getElementById ('background');
 
     this.song = {type: null};
   }
@@ -48,36 +35,58 @@ class Karaoke
       audio: document.createElement ('audio')
     };
 
-    let lyrics_ready = this.song.lyrics.load (cdg);
-    let audio_ready = LOAD_MEDIA (this.song.audio, mp3);
-    let background_ready = LOAD_MEDIA (this.background, 'la-soupe-aux-choux.mp4');
+    let lyrics_ready = this.song.lyrics.load ('songs/'+cdg);
+    let audio_ready = media.LOAD (this.song.audio, 'songs/'+mp3);
+    let background_ready = media.LOAD (this.background, 'backgrounds/la-soupe-aux-choux.mp4');
+    //let background_ready = media.LOAD (this.background, 'backgrounds/nyan-cat.webm');
 
-    Promise.all ([lyrics_ready, audio_ready, this.webcam.ready, background_ready]).then (() => {
+    Promise.all ([lyrics_ready, audio_ready, background_ready]).then (() => {
       this.song.lyrics.play ();
+      this.lyrics.appendChild (this.song.lyrics.canvas);
       this.song.audio.play ();
-      this.webcam.video.play ();
       this.background.play ();
-      this.mix = new VideoMix (this.canvas, this.song.lyrics.canvas, this.webcam.video, this.background);
     });
   }
 
-  play_video (video)
+  play_karafun (video, colors)
   {
     this.stop ();
 
     this.song = {
-      type: 'video',
-      video: document.createElement ('video')
+      type: 'karafun',
+      video: document.createElement ('video'),
+      lyrics: null
     };
 
-    let video_ready = LOAD_MEDIA (this.song.video, video);
-    let background_ready = LOAD_MEDIA (this.background, 'la-soupe-aux-choux.mp4');
+    let video_ready = media.LOAD (this.song.video, 'songs/'+video);
+    let background_ready = media.LOAD (this.background, 'backgrounds/la-soupe-aux-choux.mp4');
 
-    Promise.all ([video_ready, this.webcam.ready, background_ready]).then (() => {
+    Promise.all ([video_ready, background_ready]).then (() => {
       this.song.video.play ();
-      this.webcam.video.play ();
+      this.song.lyrics = new VideoKaraFun (this.song.video, colors);
+      this.lyrics.appendChild (this.song.lyrics.canvas);
       this.background.play ();
-      this.mix = new VideoMix (this.canvas, this.song.video, this.webcam.video, this.background);
+    });
+  }
+
+  play_singking (video)
+  {
+    this.stop ();
+
+    this.song = {
+      type: 'singking',
+      video: document.createElement ('video'),
+      lyrics: null
+    };
+
+    let video_ready = media.LOAD (this.song.video, 'songs/'+video);
+    let background_ready = media.LOAD (this.background, 'backgrounds/la-soupe-aux-choux.mp4');
+
+    Promise.all ([video_ready, background_ready]).then (() => {
+      this.song.video.play ();
+      this.song.lyrics = new VideoSingKing (this.song.video);
+      this.lyrics.appendChild (this.song.lyrics.canvas);
+      this.background.play ();
     });
   }
 
@@ -87,12 +96,16 @@ class Karaoke
     {
       case 'mp3+cdg':
         this.song.lyrics.stop ();
+        this.lyrics.removeChild (this.song.lyrics.canvas);
         this.song.audio.pause ();
         this.song = {type: null};
         break;
 
-      case 'video':
+      case 'karafun':
+      case 'singking':
         this.song.video.pause ();
+        if (this.song.lyrics)
+          this.lyrics.removeChild (this.song.lyrics.canvas);
         this.song = {type: null};
         break;
     }

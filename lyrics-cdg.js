@@ -50,8 +50,8 @@ class LyricsCDG
 //console.log (this.buffer);
 
     let canvas = document.createElement ('canvas');
-    canvas.width  = VW;
-    canvas.height = VH;
+    canvas.width  = 2 * VW;
+    canvas.height = 2 * VH;
     this.canvas = canvas;
     //document.body.appendChild (canvas);
 
@@ -95,6 +95,20 @@ class LyricsCDG
 
   tile_block (d)
   {
+    let color0 = d [0] & 0x0F;
+    let color1 = d [1] & 0x0F;
+    let row    = d [2] & 0x1F;
+    let column = d [3] & 0x3F;
+    let pixels = d.subarray (4, 16);
+
+    for (let y = 0; y < 12; ++y)
+      for (let x = 0; x < 6; ++x)
+      {
+        let o = (row * 12 + y) * W + (column * 6 + x);
+        let c = (pixels[y] & (1<<(5-x))) ? color1 : color0;
+        this.buffer [o] = c;
+      }
+
     console.log ('TILE_BLOCK');
   }
 
@@ -218,7 +232,7 @@ class LyricsCDG
       this.request = requestAnimationFrame (() => this.decode ());
     }
     else
-      this.context.clearRect (0, 0, VW, VH);
+      this.context.clearRect (0, 0, 2*VW, 2*VH);
   }
 
   pixel_color (x, y)
@@ -235,7 +249,7 @@ class LyricsCDG
       for (let [dx, dy] of K2)
         if (this.buffer [(12 + y + dy) * W + (6 + x + dx)] != this.transparent)
             border = true;
-      return [0, 0, 0, border ? 128 : 0];
+      return [0, 0, 0, border ? 255 : 0];
     }
   }
 
@@ -251,7 +265,7 @@ class LyricsCDG
         image.data [(y * VW + x) * 4 + 2] = b;
         image.data [(y * VW + x) * 4 + 3] = a;
       }
-    this.context.putImageData (image, 0, 0);
+    this.context.putImageData (image, VW/2, VH);
   }
 
   play ()
@@ -265,7 +279,7 @@ class LyricsCDG
   {
     console.log ('lyrics.js: ', 'STOP!');
     cancelAnimationFrame (this.request);
-    this.context.clearRect (0, 0, VW, VH);
+    this.context.clearRect (0, 0, 2*VW, 2*VH);
   }
 }
 
