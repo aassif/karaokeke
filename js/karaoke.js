@@ -1,6 +1,5 @@
 import Webcam        from "./webcam.js";
 import LyricsCDG     from "./lyrics-cdg.js";
-//import VideoMix      from "./video-mix.js";
 import VideoChroma   from "./video-chroma.js";
 import VideoKaraFun  from "./video-karafun.js";
 import VideoSingKing from "./video-singking.js";

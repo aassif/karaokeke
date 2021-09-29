@@ -11,8 +11,6 @@ function LOAD (media, path)
 function ONCLICK (media, callback)
 {
   return e => {
-    console.log (e.offsetX, e.offsetY);
-
     let canvas = document.createElement ('canvas');
     let w = canvas.width  = media.clientWidth;
     let h = canvas.height = media.clientHeight;

@@ -19,12 +19,14 @@ class VideoChroma extends VideoShader
   }
 }
 
-const FRAGMENT_SHADER = `#version 100
+const FRAGMENT_SHADER = `#version 300 es
 precision mediump float;
 
-uniform sampler2D texture;
+uniform sampler2D sampler;
 
-varying vec2 coords;
+in vec2 coords;
+
+out vec4 color;
 
 // C H R O M A /// K E Y ///////////////////////////////////////////////////////
 
@@ -69,7 +71,7 @@ vec4 chroma (vec3 rgb)
 
 void main ()
 {
-  gl_FragColor = chroma (texture2D (texture, coords).rgb);
+  color = chroma (texture (sampler, coords).rgb);
 }`;
 
 export default VideoChroma;

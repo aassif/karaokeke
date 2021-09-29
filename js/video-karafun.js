@@ -34,21 +34,33 @@ console.log (this.colors);
   }
 }
 
-const FRAGMENT_SHADER = `#version 100
+const FRAGMENT_SHADER = `#version 300 es
 precision mediump float;
 
 const int N = 4;
-const int K = 3;
+//const int K = 2;
 
-varying vec2 coords;
+in vec2 coords;
 
-uniform sampler2D texture;
+uniform sampler2D sampler;
 uniform ivec2 resolution;
 uniform vec3 colors [N];
 
+out vec4 color;
+
+const vec2 K [20] =
+  vec2 [20]
+  (
+    /**********/ vec2 (-1,-2), vec2(0,-2), vec2(+1,-2), /**********/
+    vec2(-2,-1), vec2 (-1,-1), vec2(0,-1), vec2(+1,-1), vec2(+2,-1),
+    vec2(-2, 0), vec2 (-1, 0), /*********/ vec2(+1, 0), vec2(+2, 0),
+    vec2(-2,+1), vec2 (-1,+1), vec2(0,+1), vec2(+1,+1), vec2(+2,+1),
+    /**********/ vec2 (-1,+2), vec2(0,+2), vec2(+1,+2)  /**********/
+  );
+
 vec3 karafun_texture (vec2 c)
 {
-  return texture2D (texture, c).rgb;
+  return texture (sampler, c).rgb;
 }
 
 vec3 karafun_yuv (vec3 rgb)
@@ -88,22 +100,21 @@ vec4 karafun ()
   if (f0) return vec4 (rgb0, 1);
 
   vec2 r = 1.0 / vec2 (resolution);
-  for (int y = -K; y <= +K; ++y)
-    for (int x = -K; x <= +K; ++x)
-    {
-      vec2 c1 = coords + vec2 (x, y) * r;
-      vec3 rgb1 = karafun_texture (c1);
-      bool f1 = karafun_filter (rgb1);
-      //if (f1) return vec4 (0, 0, 0, 1);
-      if (f1) return vec4 (rgb0, 1);
-    }
+  for (int k = 0; k < 20; ++k)
+  {
+    vec2 c1 = coords + K[k] * r;
+    vec3 rgb1 = karafun_texture (c1);
+    bool f1 = karafun_filter (rgb1);
+    //if (f1) return vec4 (0, 0, 0, 1);
+    if (f1) return vec4 (rgb0, 1);
+  }
 
   return vec4 (0);
 }
 
 void main ()
 {
-  gl_FragColor = karafun ();
+  color = karafun ();
 }`;
 
 export default VideoKaraFun;

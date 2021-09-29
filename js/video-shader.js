@@ -9,8 +9,8 @@ class VideoShader
     //canvas.height = video.videoHeight;
     //canvas.width = 800;
     //canvas.height = 800 * video.videoHeight / video.videoWidth;
-    canvas.width = 600 * video.videoWidth / video.videoHeight;
-    canvas.height = 600;
+    canvas.width = 480 * video.videoWidth / video.videoHeight;
+    canvas.height = 480;
     this.canvas = canvas;
 
     let gl = canvas.getContext ('webgl2', {preserveDrawingBuffer: true, premultipliedAlpha: false});
@@ -24,7 +24,7 @@ class VideoShader
 
     this.video = video;
     this.texture = this.create_texture ();
-    this.register_uniform ('texture');
+    this.register_uniform ('sampler');
 
     let QUAD = new Float32Array ([-1, -1, +1, -1, -1, +1, +1, +1]);
     let buffer = gl.createBuffer ();
@@ -67,7 +67,7 @@ class VideoShader
     gl.bindTexture (gl.TEXTURE_2D, this.texture);
     gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
     gl.pixelStorei (gl.UNPACK_FLIP_Y_WEBGL, true);
-    gl.uniform1i (this.locations['texture'], 0);
+    gl.uniform1i (this.locations['sampler'], 0);
 
     this.update_uniforms ();
 
@@ -103,14 +103,14 @@ function PROGRAM (gl, vertex, fragment)
   return program;
 }
 
-const VERTEX_SHADER = `#version 100
+const VERTEX_SHADER = `#version 300 es
 precision mediump float;
-attribute vec2 p;
-varying vec2 coords;
+in vec2 position;
+out vec2 coords;
 void main ()
 {
-  coords = p * 0.5 + 0.5;
-  gl_Position = vec4 (p, 0, 1);
+  coords = position * 0.5 + 0.5;
+  gl_Position = vec4 (position, 0, 1);
 }`;
 
 export default VideoShader;
