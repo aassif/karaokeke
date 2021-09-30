@@ -69,7 +69,7 @@
                 break;
 
               case 'karafun':
-                karaoke.play_karafun (m.song.video, m.song['karafun-colors']);
+                karaoke.play_karafun (m.song.video, m.song['karafun-colors'] || []);
                 break;
 
               case 'singking':
@@ -87,7 +87,6 @@
             break;
 
           case 'chroma-key':
-            console.log (m);
             if (karaoke.chroma)
               karaoke.chroma.chroma_key = m.value;
             break;

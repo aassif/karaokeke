@@ -31,8 +31,16 @@ class VideoShader
     gl.bindBuffer (gl.ARRAY_BUFFER, buffer);
     gl.bufferData (gl.ARRAY_BUFFER, QUAD, gl.STATIC_DRAW);
     this.buffer = buffer;
+  }
 
-    //this.draw ();
+  dispose ()
+  {
+    cancelAnimationFrame (this.request);
+
+    let gl = this.gl;
+    gl.deleteTexture (this.texture);
+    gl.deleteBuffer (this.buffer);
+    gl.deleteProgram (this.program);
   }
 
   register_uniform (id)
@@ -76,7 +84,7 @@ class VideoShader
     gl.vertexAttribPointer (0, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
 
-    requestAnimationFrame (() => this.draw ());
+    this.request = requestAnimationFrame (() => this.draw ());
   }
 }
 
@@ -94,11 +102,16 @@ function SHADER (gl, type, source)
 function PROGRAM (gl, vertex, fragment)
 {
   const program = gl.createProgram ();
-  gl.attachShader (program, SHADER (gl, gl.VERTEX_SHADER,   vertex));
-  gl.attachShader (program, SHADER (gl, gl.FRAGMENT_SHADER, fragment));
+
+  let v = SHADER (gl, gl.VERTEX_SHADER,   vertex);   gl.attachShader (program, v);
+  let f = SHADER (gl, gl.FRAGMENT_SHADER, fragment); gl.attachShader (program, f);
+
   gl.linkProgram (program);
   if (! gl.getProgramParameter (program, gl.LINK_STATUS))
     throw gl.getProgramInfoLog (program);
+
+  gl.detachShader (program, v); gl.deleteShader (v);
+  gl.detachShader (program, f); gl.deleteShader (f);
 
   return program;
 }

@@ -19,7 +19,7 @@ function ONCLICK (media, callback)
     context.drawImage (media, 0, 0, w, h);
     let [r, g, b] = context.getImageData (e.offsetX, e.offsetY, 1, 1).data;
 
-    callback (r, g, b);
+    callback ([r, g, b]);
   };
 }
 

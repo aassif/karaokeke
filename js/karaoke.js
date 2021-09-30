@@ -94,8 +94,8 @@ class Karaoke
     switch (this.song.type)
     {
       case 'mp3+cdg':
-        this.song.lyrics.stop ();
         this.lyrics.removeChild (this.song.lyrics.canvas);
+        this.song.lyrics.stop ();
         this.song.audio.pause ();
         this.song = {type: null};
         break;
@@ -104,7 +104,10 @@ class Karaoke
       case 'singking':
         this.song.video.pause ();
         if (this.song.lyrics)
+        {
           this.lyrics.removeChild (this.song.lyrics.canvas);
+          this.song.lyrics.dispose ();
+        }
         this.song = {type: null};
         break;
     }

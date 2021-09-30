@@ -2,10 +2,10 @@ import VideoShader from "./video-shader.js";
 
 const RGB = rgb => new Float32Array (rgb.map (x => x/255.0));
 
-function PAD (T, n)
+function PAD (T, n, zero)
 {
   let m = T.length;
-  return Array.from ({length: n}, (t, k) => (k < m ? T[k] : T[m-1]));
+  return Array.from ({length: n}, (t, k) => (k < m ? T[k] : (m > 0 ? T[m-1] : zero)));
 }
 
 class VideoKaraFun extends VideoShader
@@ -13,8 +13,7 @@ class VideoKaraFun extends VideoShader
   constructor (video, colors)
   {
     super (video, FRAGMENT_SHADER);
-    this.colors = PAD (colors, 4);
-console.log (this.colors);
+    this.colors = PAD (colors, 4, [255, 255, 255]);
     this.register_uniform ('resolution');
     this.register_uniform ('colors[0]');
     this.register_uniform ('colors[1]');
