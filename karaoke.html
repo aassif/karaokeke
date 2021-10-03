@@ -20,14 +20,14 @@
         height: 100%;
         object-fit: contain;
       }
-      #webcam {
+      #camera {
         z-index: 1;
         position: fixed;
         top: 0; left: 0;
         width: 100%;
         height: 100%;
       }
-      #webcam > canvas {
+      #camera > canvas {
         transform: rotateY(180deg);
         width: 100%;
         height: 100%;
@@ -50,7 +50,7 @@
   <body>
     <!--canvas id="canvas"></canvas-->
     <video id="background" muted loop></video>
-    <div id="webcam"></div>
+    <div id="camera"></div>
     <div id="lyrics"></div>
     <script type="module">
       import Karaoke from "./js/karaoke.js";
@@ -86,9 +86,13 @@
             karaoke.stop ();
             break;
 
+          case 'camera':
+            karaoke.set_camera (m.constraints, m['chroma-key']);
+            break;
+
           case 'chroma-key':
             if (karaoke.chroma)
-              karaoke.chroma.chroma_key = m.value;
+              karaoke.chroma.chroma_key = m['chroma-key'];
             break;
 
           default:

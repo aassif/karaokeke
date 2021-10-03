@@ -1,4 +1,4 @@
-import Webcam        from "./webcam.js";
+import {Camera}      from "./camera.js";
 import LyricsCDG     from "./lyrics-cdg.js";
 import VideoChroma   from "./video-chroma.js";
 import VideoKaraFun  from "./video-karafun.js";
@@ -9,19 +9,21 @@ class Karaoke
 {
   constructor ()
   {
-    let constraints = {audio: false, video: true};
-    this.webcam = new Webcam (constraints);
-    this.webcam.ready.then (() => {
-      this.webcam.video.play ();
-      this.chroma = new VideoChroma (this.webcam.video);
-      let w = document.getElementById ('webcam');
-      w.appendChild (this.chroma.canvas);
-    });
-
+    this.camera = new Camera ();
     this.lyrics = document.getElementById ('lyrics');
     this.background = document.getElementById ('background');
-
     this.song = {type: null};
+  }
+
+  set_camera (constraints, chroma_key)
+  {
+    this.camera.init (constraints).then (() => {
+      let w = document.getElementById ('camera');
+      if (this.chroma) w.removeChild (this.chroma.canvas);
+      this.camera.video.play ();
+      this.chroma = new VideoChroma (this.camera.video, chroma_key);
+      w.appendChild (this.chroma.canvas);
+    });
   }
 
   play_cdg (mp3, cdg)

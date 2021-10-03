@@ -8,20 +8,41 @@
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <!-- Bootstrap Icons -->
     <link href="bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <style>
+      #camera-list .modal-body video {
+        width: 100%;
+      }
+      #chroma-picker .modal-body video,
+      #chroma-picker .modal-body canvas {
+        width: 100%;
+      }
+    </style>
   </head>
   <body class="w-100 h-100">
-    <!-- Chroma Key -->
+    <!-- Caméras -->
+    <div class="modal" id="camera-list">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Caméras</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+          </div>
+          <div class="modal-body d-flex"></div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Clé chromatique -->
     <div class="modal" id="chroma-picker">
       <div class="modal-dialog modal-xl">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Chroma Key</h5>
+            <h5 class="modal-title">Clé chromatique</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
           </div>
-          <div class="modal-body">
-            <div id="chroma-webcam"></div>
-            <div id="chroma-preview"></div>
-          </div>
+          <div class="modal-body d-flex"></div>
           <div class="modal-footer">
             <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Fermer</button>
           </div>
@@ -137,15 +158,15 @@
     <!-- Barre d'outils -->
     <div class="btn-group-vertical float-start m-2 fixed-top" role="toolbar" style="top:56px;right:auto;">
       <div class="btn-group-vertical mb-2" role="group">
-        <button type="button" class="btn btn-light" id="chroma" data-bs-toggle="modal" data-bs-target="#chroma-picker"><i class="bi-eyedropper"></i></button>
+        <button type="button" class="btn btn-light" id="toolbar-camera" data-bs-toggle="modal" data-bs-target="#camera-list"><i class="bi-camera-video"></i></button>
+        <button type="button" class="btn btn-light" id="toolbar-chroma" data-bs-toggle="modal" data-bs-target="#chroma-picker" disabled><i class="bi-eyedropper"></i></button>
       </div>
       <div class="btn-group-vertical mb-2" role="group">
-        <button type="button" class="btn btn-light" id="new-song-download" data-bs-toggle="modal" data-bs-target="#new-song"><i class="bi-cloud-plus"></i></button>
-        <button type="button" class="btn btn-light" id="new-song-import" data-bs-toggle="modal" data-bs-target="#new-song"><i class="bi-file-earmark-plus"></i></button>
-        <button type="button" class="btn btn-light" id="download"><i class="bi-download"></i></button>
+        <button type="button" class="btn btn-light" id="toolbar-new-song" data-bs-toggle="modal" data-bs-target="#new-song"><i class="bi-cloud-plus"></i></button>
+        <button type="button" class="btn btn-light" id="toolbar-download"><i class="bi-download"></i></button>
       </div>
       <div class="btn-group-vertical mb-2" role="group">
-        <button type="button" class="btn btn-light" id="stop"><i class="bi-stop-fill"></i></button>
+        <button type="button" class="btn btn-light" id="toolbar-stop"><i class="bi-stop-fill"></i></button>
       </div>
       <div class="btn-group-vertical" role="group">
         <button type="button" class="btn btn-light" disabled><i class="bi-symmetry-vertical"></i></button>
@@ -154,12 +175,16 @@
     </div>
     <!-- Liste des chansons -->
     <ul id="songs" class="list-group list-group-flush w-75 mx-auto" style="margin-top:56px;"></ul>
+    <!-- Toasts -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
     <script type="module">
       import * as media  from "./js/media.js";
-      import Webcam      from "./js/webcam.js";
+      import * as camera from "./js/camera.js";
       import VideoChroma from "./js/video-chroma.js";
       import Properties  from "./js/song-properties.js";
       import Wizard      from "./js/song-wizard.js";
+
+      const CAMERA_RATIO = 16/9;
 
       let songs = [];
       let selection = [];
@@ -180,125 +205,228 @@
       }
       console.log (str ('Beyoncé'));
 
+      let toasts = document.querySelector ('.toast-container');
+      function toast_message (background, icon, title, message)
+      {
+        let i = document.createElement ('i');
+        i.classList.add (icon, 'me-2');
+        let strong = document.createElement ('strong');
+        strong.classList.add ('me-auto');
+        strong.innerHTML = title;
+        let button = document.createElement ('button');
+        button.type = 'button';
+        button.classList.add ('btn-close', 'btn-close-white');
+        button.setAttribute ('data-bs-dismiss', 'toast');
+        let header = document.createElement ('div');
+        header.classList.add ('toast-header', background, 'text-white');
+        header.append (i, strong, button);
+        let body = document.createElement ('div');
+        body.className = 'toast-body';
+        body.innerHTML = message;
+        let toast = document.createElement ('div');
+        toast.className = 'toast';
+        toast.append (header, body);
+        toasts.append (toast);
+        let t = new bootstrap.Toast (toast);
+        t.show ();
+      }
+
+      function toast_success (title, m)
+      {
+        toast_message ('bg-success', 'bi-check-circle', title, m);
+      }
+
+      function toast_error (title, m)
+      {
+        toast_message ('bg-danger', 'bi-exclamation-octagon', title, m);
+      }
+
+      //setTimeout (() => {toast_success ('Test', 'test'); setTimeout (() => {toast_error ('Test', 'test');}, 2000);}, 2000);
+
+      // Propriétés d'une chanson.
+      let properties = new Properties ('song-properties', () => {
+        confirm_reload = true;
+        song_list ();
+      });
+
+      // Téléchargement d'une nouvelle vidéo.
+      let wizard = new Wizard ('new-song',
+        song => {
+          confirm_reload = true;
+          toast_success (song.artist + ' - ' + song.title, 'Téléchargement terminé');
+          songs.unshift (song);
+          song_list ();
+        },
+        error => {
+          toast_error (error.artist + ' - ' + error.title, error.message);
+        });
+
+      function song_item_icon (song)
+      {
+        if (! song.icon)
+          return 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
+
+        if (/^https?:\/\//.test (song.icon))
+          return song.icon;
+
+        return 'songs/' + song.icon;
+      }
+
+      function song_item (song)
+      {
+        let img = document.createElement ('img');
+        img.className = 'm-1';
+        img.width = 50;
+        img.height = 50;
+        img.src = song_item_icon (song);
+        img.onclick = () => karaoke.postMessage ({type: 'play', song});
+
+        let title = document.createElement ('div');
+        title.innerHTML = song.title;
+        let artist = document.createElement ('div');
+        artist.className = 'text-secondary';
+        artist.innerHTML = song.artist;
+        let text = document.createElement ('div');
+        text.className = 'd-flex flex-column flex-grow-1 m-2';
+        text.append (title, artist);
+
+        let settings = document.createElement ('button');
+        settings.className = 'btn m-1';
+        settings.innerHTML = '<i class="bi-three-dots"></i>';
+        settings.onclick = () => properties.show (song);
+
+        let li = document.createElement ('li');
+        li.className = 'list-group-item d-flex flex-row align-items-center';
+        li.append (img, text, settings);
+        return li;
+      }
+
+      function song_list ()
+      {
+        console.log ('song_list');
+        let list = document.getElementById ('songs');
+        list.innerHTML = '';
+        selection.forEach (song => {
+          list.append (song_item (song));
+        });
+      }
+
       // Fenêtre secondaire.
       let karaoke = window.open ('karaoke.html', 'Karaoke');
       if (karaoke != null)
       {
         // Webcam
-        let constraints = {audio: false, video: {width: {min: 1280, ideal: 1920}, height: {min: 720, ideal: 1080}}};
-        let webcam = new Webcam (constraints);
-        // Dès que la webcam est prête...
-        webcam.ready.then (() => {
+        camera.ENUMERATE (CAMERA_RATIO).then (cameras => {
+          function post_camera ()
+          {
+            let constraints = cameras [camera_index].constraints;
+            let chroma_key = chroma_keys [camera_index];
+            karaoke.postMessage ({type: 'camera', constraints, 'chroma-key': chroma_key});
+          }
+
+          function post_chroma_key ()
+          {
+            let chroma_key = chroma_keys [camera_index];
+            karaoke.postMessage ({type: 'chroma-key', 'chroma-key': chroma_key});
+          }
+
+          // Clés chromatiques.
+          let chroma_keys = cameras.map (() => [0, 255, 0]); 
+          // Caméra par défaut.
+          let camera_index = 0;
+          post_camera ();
+          // Ajout des caméras à la fenêtre de sélection.
+          let camera_modal = document.getElementById ('camera-list');
+          let camera_modal_body = document.querySelector ('.modal-body');
+          // Dès que la fenêtre s'affiche...
+          camera_modal.addEventListener ('show.bs.modal', e => {
+            camera_modal_body.innerHTML = '';
+            cameras.forEach ((c, k) => {
+              c.video.play ();
+              c.video.onclick = () => {
+                let items = Array.from (camera_modal_body.querySelectorAll ('div'));
+                items [camera_index].classList.toggle ('border-secondary');
+                items [camera_index].classList.toggle ('border-danger');
+                camera_index = k;
+                post_camera ();
+                items [camera_index].classList.toggle ('border-secondary');
+                items [camera_index].classList.toggle ('border-danger');
+              };
+              let item = document.createElement ('div');
+              let color = k == camera_index ? 'border-danger' : 'border-secondary';
+              item.classList.add ('m-2', 'border', 'border-5', color);
+              item.style.lineHeight = 0;
+              item.style.width = '50%';
+              item.appendChild (c.video);
+              camera_modal_body.appendChild (item);
+            });
+          });
+          // Bouton "chroma key".
+          document.querySelector ('#toolbar-chroma').disabled = false;
           // Fenêtre de dialogue.
           let modal = document.getElementById ('chroma-picker');
           let body = modal.querySelector ('.modal-body');
           // Dès que la fenêtre s'affiche...
           modal.addEventListener ('show.bs.modal', e => {
+            let video = cameras [camera_index].video;
             // Démarrage de la vidéo.
-            webcam.video.play ();
+            video.play ();
             // Création du filtre "chroma-key".
-            let chroma = new VideoChroma (webcam.video);
+            let chroma = new VideoChroma (video, chroma_keys [camera_index]);
             // Gestion du clic sur la vidéo.
-            webcam.video.onclick = media.ONCLICK (webcam.video, rgb => {
+            video.onclick = media.ONCLICK (video, rgb => {
               console.log ('onclick', rgb);
+              chroma_keys [camera_index] = rgb;
               chroma.chroma_key = rgb;
-              karaoke.postMessage ({type: 'chroma-key', value: rgb});
+              post_chroma_key ();
             });
             // Ajout des éléments.
-            body.appendChild (webcam.video);
-            webcam.video.style.width = "50%";
-            body.appendChild (chroma.canvas);
-            chroma.canvas.style.width = "50%";
+            let div1 = document.createElement ('div');
+            div1.classList.add ('m-2');
+            div1.appendChild (video);
+            div1.style.width = "50%";
+            let div2 = document.createElement ('div');
+            div2.classList.add ('m-2');
+            div2.appendChild (chroma.canvas);
+            div2.style.width = "50%";
+            body.append (div1, div2);
             // Suppression des éléments à la fermeture.
             let listener = () => {
               //console.log ('hidden.bs.modal');
-              body.removeChild (webcam.video);
-              body.removeChild (chroma.canvas);
+              body.removeChild (div1);
+              body.removeChild (div2);
               chroma.dispose ();
             };
             modal.addEventListener ('hidden.bs.modal', listener, {once: true});
           });
         });
 
-        // Propriétés d'une chanson.
-        let properties = new Properties ('song-properties', () => {
-          confirm_reload = true;
-          song_list ();
-        });
-
-        // Téléchargement d'une nouvelle vidéo.
-        let wizard = new Wizard ('new-song', song => {
-          confirm_reload = true;
-          songs.unshift (song);
-          song_list ();
-        });
-
-        function song_item_icon (song)
+        function SONG_ORDER (s1, s2)
         {
-          if (! song.icon)
-            return 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs='
+          if (s1.title < s2.title) return -1;
+          if (s1.title > s2.title) return +1;
 
-          if (/^https?:\/\//.test (song.icon))
-            return song.icon;
+          if (s1.artist < s2.artist) return -1;
+          if (s1.artist > s2.artist) return +1;
 
-          return 'songs/' + song.icon;
-        }
-
-        function song_item (song)
-        {
-          let img = document.createElement ('img');
-          img.className = 'm-1';
-          img.width = 50;
-          img.height = 50;
-          img.src = song_item_icon (song);
-          img.onclick = () => karaoke.postMessage ({type: 'play', song});
-
-          let title = document.createElement ('div');
-          title.innerHTML = song.title;
-          let artist = document.createElement ('div');
-          artist.className = 'text-secondary';
-          artist.innerHTML = song.artist;
-          let text = document.createElement ('div');
-          text.className = 'd-flex flex-column flex-grow-1 m-2';
-          text.append (title, artist);
-
-          let settings = document.createElement ('button');
-          settings.className = 'btn m-1';
-          settings.innerHTML = '<i class="bi-three-dots"></i>';
-          settings.onclick = () => properties.show (song);
-
-          let li = document.createElement ('li');
-          li.className = 'list-group-item d-flex flex-row align-items-center';
-          li.append (img, text, settings);
-          return li;
-        }
-
-        function song_list ()
-        {
-          console.log ('song_list');
-          let list = document.getElementById ('songs');
-          list.innerHTML = '';
-          selection.forEach (song => {
-            console.log (song.title);
-            list.append (song_item (song));
-          });
+          return 0;
         }
 
         fetch ('songs.json').
           then (r => r.json ()).
           then (json => {
-            songs = json;
+            songs = json.sort (SONG_ORDER);
             selection = songs;
             song_list ();
           });
 
         {
-          let button = document.getElementById ('download');
+          let button = document.getElementById ('toolbar-download');
           button.onclick = download;
         }
 
         {
-          let button = document.getElementById ('stop');
+          let button = document.getElementById ('toolbar-stop');
           button.onclick = () => karaoke.postMessage ({type: 'stop'});
         }
       }

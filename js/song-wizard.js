@@ -10,14 +10,15 @@ function STR (s)
 
 class Wizard
 {
-  constructor (id, listener)
+  constructor (id, onsuccess, onerror)
   {
     this.root = document.getElementById (id);
     this.modal = new bootstrap.Modal (this.root);
     this.get ('form').onsubmit = () => {this.apply (); return false;};
     this.get ('.btn-primary').onclick = () => {this.apply ();};
     this.root.addEventListener ('show.bs.modal', () => {this.get ('form').reset ();});
-    this.listener = listener;
+    this.onsuccess = onsuccess;
+    this.onerror = onerror;
   }
 
   get (selector)
@@ -52,9 +53,9 @@ class Wizard
       then (r => r.json ()).
       then (json => {
         if (json.success)
-          this.listener ({artist, title, type, video: filename});
+          this.onsuccess ({artist, title, type, video: filename});
         else
-          console.error ('song-wizard.js:', json.error);
+          this.onerror ({artist, title, message: json.error});
       });
   }
 }

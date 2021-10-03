@@ -2,11 +2,11 @@ import VideoShader from "./video-shader.js";
 
 class VideoChroma extends VideoShader
 {
-  constructor (video)
+  constructor (video, chroma_key)
   {
     super (video, FRAGMENT_SHADER);
 
-    this.chroma_key = [124, 161, 72];
+    this.chroma_key = chroma_key;
     this.register_uniform ('chroma_key');
 
     this.draw ();

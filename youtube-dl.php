@@ -9,7 +9,7 @@ $output = $_GET['output'] ?? null;
 
 function error ($message)
 {
-  return printf ('{"success" : false, "error" : "%s"}', $command);
+  return printf ('{"success" : false, "error" : "%s"}', $message);
 }
 
 if (! file_exists ($output))
