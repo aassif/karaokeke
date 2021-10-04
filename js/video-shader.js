@@ -25,6 +25,7 @@ class VideoShader
     this.video = video;
     this.texture = this.create_texture ();
     this.register_uniform ('sampler');
+    this.register_uniform ('resolution');
 
     let QUAD = new Float32Array ([-1, -1, +1, -1, -1, +1, +1, +1]);
     let buffer = gl.createBuffer ();
@@ -76,6 +77,8 @@ class VideoShader
     gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
     gl.pixelStorei (gl.UNPACK_FLIP_Y_WEBGL, true);
     gl.uniform1i (this.locations['sampler'], 0);
+
+    gl.uniform2i (this.locations['resolution'], this.canvas.width, this.canvas.height);
 
     this.update_uniforms ();
 

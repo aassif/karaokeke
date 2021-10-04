@@ -26,7 +26,7 @@ class Karaoke
     });
   }
 
-  play_cdg (mp3, cdg)
+  play_cdg (mp3, cdg, background)
   {
     this.stop ();
 
@@ -38,8 +38,7 @@ class Karaoke
 
     let lyrics_ready = this.song.lyrics.load ('songs/'+cdg);
     let audio_ready = media.LOAD (this.song.audio, 'songs/'+mp3);
-    let background_ready = media.LOAD (this.background, 'backgrounds/la-soupe-aux-choux.mp4');
-    //let background_ready = media.LOAD (this.background, 'backgrounds/nyan-cat.webm');
+    let background_ready = media.LOAD (this.background, 'songs/'+background);
 
     Promise.all ([lyrics_ready, audio_ready, background_ready]).then (() => {
       this.song.lyrics.play ();
@@ -49,7 +48,7 @@ class Karaoke
     });
   }
 
-  play_karafun (video, colors)
+  play_karafun (video, colors, background)
   {
     this.stop ();
 
@@ -60,7 +59,7 @@ class Karaoke
     };
 
     let video_ready = media.LOAD (this.song.video, 'songs/'+video);
-    let background_ready = media.LOAD (this.background, 'backgrounds/la-soupe-aux-choux.mp4');
+    let background_ready = media.LOAD (this.background, 'songs/'+background);
 
     Promise.all ([video_ready, background_ready]).then (() => {
       this.song.video.play ();
@@ -70,7 +69,7 @@ class Karaoke
     });
   }
 
-  play_singking (video)
+  play_singking (video, background)
   {
     this.stop ();
 
@@ -81,7 +80,7 @@ class Karaoke
     };
 
     let video_ready = media.LOAD (this.song.video, 'songs/'+video);
-    let background_ready = media.LOAD (this.background, 'backgrounds/la-soupe-aux-choux.mp4');
+    let background_ready = media.LOAD (this.background, 'songs/'+background);
 
     Promise.all ([video_ready, background_ready]).then (() => {
       this.song.video.play ();

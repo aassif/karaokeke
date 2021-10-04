@@ -4,26 +4,30 @@ header ('Content-Type: application/json');
 
 define ('FORMAT', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4');
 
-$url    = $_GET['url']    ?? null;
-$output = $_GET['output'] ?? null;
-
 function error ($message)
 {
-  return printf ('{"success" : false, "error" : "%s"}', $message);
+  printf ('{"success" : false, "error" : "%s"}', $message);
+  exit (1);
 }
+
+if (! array_key_exists ('url', $_GET))
+  error ('missing_argument', 'url');
+
+if (! array_key_exists ('output', $_GET))
+  error ('missing_argument', 'output');
 
 if (! file_exists ($output))
 {
-  $command = sprintf ("youtube-dl --print-json -f '%s' -o '%s' %s", FORMAT, $output, $url);
+  $command = sprintf ("youtube-dl --print-json -f '%s' -o '%s' %s", FORMAT, $_GET['output'], $_GET['url']);
   $ytdl = shell_exec ($command);
   if ($ytdl)
     printf ('{"success" : true, "result" : %s}', $ytdl);
   else
-    return error ('ytdl');
+    error ('ytdl', $command);
 }
 else
 {
-  return error ('file_exists');
+  error ('file_exists', $output);
 }
 
 ?>

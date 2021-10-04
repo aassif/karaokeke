@@ -5,13 +5,7 @@ class VideoSingKing extends VideoShader
   constructor (video)
   {
     super (video, FRAGMENT_SHADER);
-    this.register_uniform ('resolution');
     this.draw ();
-  }
-
-  update_uniforms ()
-  {
-    this.gl.uniform2i (this.locations['resolution'], this.canvas.width, this.canvas.height);
   }
 }
 

@@ -14,7 +14,6 @@ class VideoKaraFun extends VideoShader
   {
     super (video, FRAGMENT_SHADER);
     this.colors = PAD (colors, 4, [255, 255, 255]);
-    this.register_uniform ('resolution');
     this.register_uniform ('colors[0]');
     this.register_uniform ('colors[1]');
     this.register_uniform ('colors[2]');
@@ -25,7 +24,6 @@ class VideoKaraFun extends VideoShader
   update_uniforms ()
   {
     let l = this.locations;
-    this.gl.uniform2i (l['resolution'], this.canvas.width, this.canvas.height);
     this.gl.uniform3fv (l['colors[0]'], RGB (this.colors[0]));
     this.gl.uniform3fv (l['colors[1]'], RGB (this.colors[1]));
     this.gl.uniform3fv (l['colors[2]'], RGB (this.colors[2]));
@@ -37,7 +35,6 @@ const FRAGMENT_SHADER = `#version 300 es
 precision mediump float;
 
 const int N = 4;
-//const int K = 2;
 
 in vec2 coords;
 
@@ -104,7 +101,6 @@ vec4 karafun ()
     vec2 c1 = coords + K[k] * r;
     vec3 rgb1 = karafun_texture (c1);
     bool f1 = karafun_filter (rgb1);
-    //if (f1) return vec4 (0, 0, 0, 1);
     if (f1) return vec4 (rgb0, 1);
   }
 
