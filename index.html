@@ -2,7 +2,7 @@
 <html lang="fr" class="w-100 h-100">
   <head>
     <meta charset="utf-8">
-    <title>Karaoké</title>
+    <title>Karaokéké</title>
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <script src="bootstrap/js/bootstrap.min.js"></script>
@@ -18,7 +18,7 @@
       }
     </style>
   </head>
-  <body class="w-100 h-100">
+  <body class="w-100">
     <!-- Caméras -->
     <div class="modal" id="camera-list">
       <div class="modal-dialog modal-xl">
@@ -148,7 +148,7 @@
     <!-- Barre d'outils -->
     <nav class="navbar navbar-expand-md navbar-light fixed-top bg-light">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">Karaoké</a>
+        <a class="navbar-brand" href="#">Karaokéké</a>
         <form class="d-flex">
           <input class="form-control me-2" type="search" placeholder="Rechercher" aria-label="Rechercher">
           <button class="btn btn-outline-success" type="submit"><i class="bi-search"></i></button>
@@ -198,12 +198,6 @@
         a.download = 'songs.json';
         a.click ();
       }
-
-      function str (s)
-      {
-        return s.normalize ('NFD').replace (/\p{Diacritic}/gu, '').toLowerCase ();
-      }
-      console.log (str ('Beyoncé'));
 
       let toasts = document.querySelector ('.toast-container');
       function toast_message (background, icon, title, message)
@@ -309,6 +303,27 @@
         selection.forEach (song => {
           list.append (song_item (song));
         });
+      }
+
+      function STR (s)
+      {
+        return s.normalize ('NFD').replace (/\p{Diacritic}/gu, '').toLowerCase ();
+      }
+
+      function search (e)
+      {
+        let f = e.target;
+        //window.scrollTo ({top: 0, behavior: 'instant'});
+        let q = STR (f.querySelector ('input').value);
+        let r = new RegExp ('\\b' + q);
+        selection = songs.filter (song => r.test (STR (song.title)) || r.test (STR (song.artist)));
+        song_list ();
+        return false;
+      }
+
+      {
+        let f = document.querySelector ('nav form');
+        f.onsubmit = search;
       }
 
       // Fenêtre secondaire.
