@@ -158,7 +158,7 @@
     <!-- Barre d'outils -->
     <div class="btn-group-vertical float-start m-2 fixed-top" role="toolbar" style="top:56px;right:auto;">
       <div class="btn-group-vertical mb-2" role="group">
-        <button type="button" class="btn btn-light" id="toolbar-camera" data-bs-toggle="modal" data-bs-target="#camera-list"><i class="bi-camera-video"></i></button>
+        <button type="button" class="btn btn-light" id="toolbar-camera" data-bs-toggle="modal" data-bs-target="#camera-list" disabled><i class="bi-camera-video"></i></button>
         <button type="button" class="btn btn-light" id="toolbar-chroma" data-bs-toggle="modal" data-bs-target="#chroma-picker" disabled><i class="bi-eyedropper"></i></button>
       </div>
       <div class="btn-group-vertical mb-2" role="group">
@@ -281,7 +281,7 @@
         artist.className = 'text-secondary';
         artist.innerHTML = song.artist;
         let text = document.createElement ('div');
-        text.className = 'd-flex flex-column flex-grow-1 m-2';
+        text.className = 'd-flex flex-column flex-grow-1 m-1';
         text.append (title, artist);
 
         let settings = document.createElement ('button');
@@ -386,7 +386,8 @@
               camera_modal_body.appendChild (item);
             });
           });
-          // Bouton "chroma key".
+          // Activation des boutons liés aux caméras.
+          document.querySelector ('#toolbar-camera').disabled = false;
           document.querySelector ('#toolbar-chroma').disabled = false;
           // Fenêtre de dialogue.
           let modal = document.getElementById ('chroma-picker');
