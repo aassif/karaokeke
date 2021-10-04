@@ -345,6 +345,16 @@
             karaoke.postMessage ({type: 'chroma-key', 'chroma-key': chroma_key});
           }
 
+          function camera_button_size ()
+          {
+            switch (cameras.length)
+            {
+              case 1: return '100%';
+              case 3: return '33%';
+              default: return '50%';
+            }
+          }
+
           // Clés chromatiques.
           let chroma_keys = cameras.map (() => [0, 255, 0]); 
           // Caméra par défaut.
@@ -371,7 +381,7 @@
               let color = k == camera_index ? 'border-danger' : 'border-secondary';
               item.classList.add ('m-2', 'border', 'border-5', color);
               item.style.lineHeight = 0;
-              item.style.width = '50%';
+              item.style.width = camera_button_size ();
               item.appendChild (c.video);
               camera_modal_body.appendChild (item);
             });
