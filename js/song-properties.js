@@ -1,3 +1,4 @@
+import STR        from "./str.js";
 import * as media from "./media.js";
 
 const COLOR = rgb => '#' + rgb.map (x => x.toString (16).padStart (2, '0')).join ('');
@@ -35,13 +36,14 @@ function BUTTON_PLUS ()
 
 class Properties
 {
-  constructor (id, listener)
+  constructor (id, onsuccess, onerror)
   {
     this.root = document.getElementById (id);
     this.modal = new bootstrap.Modal (this.root);
     this.get ('form').onsubmit = () => {this.apply (); return false;};
     this.get ('.btn-primary').onclick = () => {this.apply ();};
-    this.listener = listener;
+    this.onsuccess = onsuccess;
+    this.onerror = onerror;
   }
 
   get (selector)
@@ -190,6 +192,15 @@ class Properties
     this.set ('#song-title', this.song.title);
     this.set ('#song-artist', this.song.artist);
 
+    // Jaquette.
+    let icon = this.get ('#song-icon');
+    let input = icon.querySelector ('input');
+    if (! this.song.icon)
+    {
+      icon.style.display = 'block';
+      input.disabled = false;
+    }
+
     switch (this.song.type)
     {
       case 'mp3+cdg':
@@ -207,6 +218,14 @@ class Properties
       default:
         console.log (this.song.type);
     }
+
+    // Nettoyage à la sortie.
+    let listener = () => {
+      icon.style.display = 'none';
+      input.disabled = true;
+      input.value = '';
+    };
+    this.root.addEventListener ('hidden.bs.modal', listener, {once: true});
 
     this.modal.show ();
   }
@@ -233,11 +252,37 @@ class Properties
         break;
 
       default:
-        console.log (song.type);
+        console.log (this.song.type);
     }
 
+    let dir = STR (this.song.artist) + '-' + STR (this.song.title);
+    let icon = this.get ('#song-icon input').value;
+    console.log (dir);
+
     this.modal.hide ();
-    this.listener ();
+
+    if (icon.length > 0)
+    {
+      console.log (icon);
+
+      let q = new URLSearchParams ([['url', icon], ['dir', 'songs/' + dir]]);
+      let url = 'icon.php?' + q.toString ();
+      console.log (url);
+
+      fetch (url).
+        then (r => r.json ()).
+        then (json => {
+          if (json.success)
+          {
+            this.song.icon = dir + '/' + json.result;
+            this.onsuccess (this.song);
+          }
+          else
+            this.onerror (this.song, json.error);
+        });
+    }
+    else
+      this.onsuccess (this.song);
   }
 }
 

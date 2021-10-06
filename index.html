@@ -11,10 +11,12 @@
     <style>
       #camera-list .modal-body video {
         width: 100%;
+        transform: rotateY(180deg);
       }
       #chroma-picker .modal-body video,
       #chroma-picker .modal-body canvas {
         width: 100%;
+        transform: rotateY(180deg);
       }
     </style>
   </head>
@@ -66,6 +68,10 @@
               <div class="form-group mt-2">
                 <label>Titre</label>
                 <input id="song-title" class="form-control"></input>
+              </div>
+              <div id="song-icon" class="form-group mt-2" style="display:none;">
+                <label>Jaquette</label>
+                <input class="form-control"></input>
               </div>
               <div id="song-cdg" style="display:none;">
                 <div class="form-group mt-2">
@@ -202,6 +208,7 @@
       let toasts = document.querySelector ('.toast-container');
       function toast_message (background, icon, title, message)
       {
+        console.log ('toast', title, message);
         let i = document.createElement ('i');
         i.classList.add (icon, 'me-2');
         let strong = document.createElement ('strong');
@@ -219,6 +226,7 @@
         body.innerHTML = message;
         let toast = document.createElement ('div');
         toast.className = 'toast';
+        //toast.setAttribute ('data-bs-autohide', false);
         toast.append (header, body);
         toasts.append (toast);
         let t = new bootstrap.Toast (toast);
@@ -238,10 +246,15 @@
       //setTimeout (() => {toast_success ('Test', 'test'); setTimeout (() => {toast_error ('Test', 'test');}, 2000);}, 2000);
 
       // Propriétés d'une chanson.
-      let properties = new Properties ('song-properties', () => {
-        confirm_reload = true;
-        song_list ();
-      });
+      let properties = new Properties ('song-properties',
+        song => {
+          confirm_reload = true;
+          toast_success (song.artist + ' - ' + song.title, 'Modifications enregistrées');
+          song_list ();
+        },
+        (song, error) => {
+          toast_error (song.artist + ' - ' + song.title, error);
+        });
 
       // Téléchargement d'une nouvelle vidéo.
       let wizard = new Wizard ('new-song',
