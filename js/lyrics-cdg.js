@@ -177,7 +177,7 @@ class LyricsCDG
     {
       if ((d [k] & 0x3F) == 0x09)
       {
-        let instruction = d [k+1];
+        let instruction = d [k+1] & 0x3F;
         let data = d.subarray (k+4, k+20);
 
         switch (instruction)
@@ -219,7 +219,7 @@ class LyricsCDG
             break;
 
           default:
-            console.error ('?');
+            console.error ('?', instruction);
         }
       }
     }
