@@ -26,7 +26,7 @@ class Karaoke
     });
   }
 
-  play_cdg (mp3, cdg, background)
+  play_cdg (mp3, cdg, background, height)
   {
     this.stop ();
 
@@ -36,7 +36,7 @@ class Karaoke
       audio: document.createElement ('audio')
     };
 
-    let lyrics_ready = this.song.lyrics.load ('songs/'+cdg);
+    let lyrics_ready = this.song.lyrics.load ('songs/'+cdg, height);
     let audio_ready = media.LOAD (this.song.audio, 'songs/'+mp3);
     let background_ready = media.LOAD (this.background, 'songs/'+background);
 

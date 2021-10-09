@@ -39,11 +39,16 @@
         top: 0; left: 0;
         width: 100%;
         height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
       }
       #lyrics > canvas {
         width: 100%;
         height: 100%;
         object-fit: contain;
+      }
     </style>
   </head>
 
@@ -66,8 +71,9 @@
             {
               case 'mp3+cdg':
               {
+                let height = m.song['cdg-height'] || '50%';
                 let background = m.song['background'] || '_/nyan_cat.webm';
-                karaoke.play_cdg (m.song.audio, m.song.lyrics, background);
+                karaoke.play_cdg (m.song.audio, m.song.lyrics, background, height);
                 break;
               }
 

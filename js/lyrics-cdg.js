@@ -50,8 +50,8 @@ class LyricsCDG
 //console.log (this.buffer);
 
     let canvas = document.createElement ('canvas');
-    canvas.width  = 2 * VW;
-    canvas.height = 2 * VH;
+    canvas.width  = VW;
+    canvas.height = VH;
     this.canvas = canvas;
     //document.body.appendChild (canvas);
 
@@ -59,13 +59,14 @@ class LyricsCDG
     this.context = context;
   }
 
-  load (cdg)
+  load (cdg, height)
   {
     return fetch (cdg).
       then (r => r.arrayBuffer ()).
       then (buffer => {
         console.log (buffer);
         this.data = new Uint8Array (buffer);
+        this.canvas.style.height = height;
       });
   }
 
@@ -265,7 +266,7 @@ class LyricsCDG
         image.data [(y * VW + x) * 4 + 2] = b;
         image.data [(y * VW + x) * 4 + 3] = a;
       }
-    this.context.putImageData (image, VW/2, VH);
+    this.context.putImageData (image, 0, 0);
   }
 
   play ()
@@ -277,9 +278,9 @@ class LyricsCDG
 
   stop ()
   {
-    console.log ('lyrics.js: ', 'STOP!');
+    console.log ('lyrics.js', 'STOP!');
     cancelAnimationFrame (this.request);
-    this.context.clearRect (0, 0, 2*VW, 2*VH);
+    this.context.clearRect (0, 0, VW, VH);
   }
 }
 
