@@ -17,6 +17,7 @@
       #chroma-picker .modal-body canvas {
         width: 100%;
         transform: rotateY(180deg);
+        cursor: crosshair;
       }
     </style>
   </head>
@@ -87,7 +88,7 @@
               </div>
               <div class="form-group mt-2" id="song-karafun" style="display:none;">
                 <label>Vidéo</label>
-                <video muted loop id="song-karafun-video" class="w-100"></video>
+                <video muted loop id="song-karafun-video" class="w-100" style="cursor:crosshair;"></video>
                 <div class="d-flex justify-content-between">
                   <span id="song-karafun-colors"></span>
                   <button id="song-karafun-pause" type="button" class="btn border" style="width:50px;height:50px;">
