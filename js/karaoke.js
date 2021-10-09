@@ -1,4 +1,4 @@
-import {Camera}      from "./camera.js";
+import Camera        from "./camera.js";
 import LyricsCDG     from "./lyrics-cdg.js";
 import VideoChroma   from "./video-chroma.js";
 import VideoKaraFun  from "./video-karafun.js";

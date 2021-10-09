@@ -49,7 +49,7 @@ function CONSTRAINTS (d, ratio)
   return {video: R, audio: false};
 }
 
-function ENUMERATE (ratio)
+Camera.ENUMERATE = function (ratio)
 {
   return navigator.mediaDevices.enumerateDevices ().
     then (devices => {
@@ -68,5 +68,5 @@ function ENUMERATE (ratio)
     });
 }
 
-export {Camera, ENUMERATE};
+export default Camera;
 
