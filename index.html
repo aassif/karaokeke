@@ -444,11 +444,13 @@
 
         function SONG_ORDER (s1, s2)
         {
-          if (s1.title < s2.title) return -1;
-          if (s1.title > s2.title) return +1;
+          const o = new Intl.Collator ('fr', {sensitivity: 'base'});
 
-          if (s1.artist < s2.artist) return -1;
-          if (s1.artist > s2.artist) return +1;
+          let t = o.compare (s1.title, s2.title);
+          if (t != 0) return t;
+
+          let a = o.compare (s1.artist, s2.artist);
+          if (a != 0) return a;
 
           return 0;
         }
