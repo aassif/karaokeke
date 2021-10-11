@@ -1,11 +1,22 @@
 function LOAD (media, path)
 {
-  let promise = new Promise (resolve => {
-    media.addEventListener ('canplaythrough', resolve);
-  });
+  return fetch (path).
+    then (response => response.blob ()).
+    then (blob => {
+      let promise = new Promise (resolve => {
+        media.addEventListener ('canplaythrough', resolve);
+      })
+      media.src = URL.createObjectURL (blob);
+      return promise;
+    });
+}
 
-  media.src = path;
-  return promise;
+function DISPOSE (media)
+{
+  let url = media.src;
+  media.pause ();
+  media.src = '';
+  URL.revokeObjectURL (url);
 }
 
 function ONCLICK (media, callback)
@@ -23,5 +34,5 @@ function ONCLICK (media, callback)
   };
 }
 
-export {LOAD, ONCLICK};
+export {LOAD, DISPOSE, ONCLICK};
 

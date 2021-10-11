@@ -8,8 +8,6 @@ class VideoChroma extends VideoShader
 
     this.chroma_key = chroma_key;
     this.register_uniform ('chroma_key');
-
-    this.draw ();
   }
 
   update_uniforms ()

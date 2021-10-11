@@ -10,10 +10,10 @@ class Camera
   init (constraints)
   {
     this.constraints = constraints;
+
     let promise = new Promise (resolve => {
       this.video.addEventListener ('loadedmetadata', resolve);
     }).then (() => {
-      //console.log ('webcam.js:', 'loadedmetadata');
       this.video.play ();
     });
 
@@ -21,17 +21,16 @@ class Camera
       then (stream => {
         let tracks = stream.getVideoTracks ();
         //console.log (tracks);
-        console.log ('webcam.js:', tracks[0].label);
+        console.log (tracks[0].label);
         stream.onremovetrack = () => {
-          console.log ('webcam.js:', 'onremovetrack');
+          console.log ('onremovetrack');
         };
         this.video.srcObject = stream;
       }).
       catch (error => {
-        console.error ('webcam.js:', error);
+        console.error (error);
       });
 
-    //document.body.appendChild (video);
     return promise;
   }
 }

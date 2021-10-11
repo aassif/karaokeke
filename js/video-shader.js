@@ -4,7 +4,7 @@ class VideoShader
   {
     let canvas = document.createElement ('canvas');
 
-    console.log ('video-shader.js', video.videoWidth, video.videoHeight);
+    console.log (video.videoWidth, video.videoHeight);
     //canvas.width  = video.videoWidth;
     //canvas.height = video.videoHeight;
     //canvas.width = 800;
@@ -36,8 +36,6 @@ class VideoShader
 
   dispose ()
   {
-    cancelAnimationFrame (this.request);
-
     let gl = this.gl;
     gl.deleteTexture (this.texture);
     gl.deleteBuffer (this.buffer);
@@ -74,8 +72,8 @@ class VideoShader
 
     gl.activeTexture (gl.TEXTURE0);
     gl.bindTexture (gl.TEXTURE_2D, this.texture);
-    gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
     gl.pixelStorei (gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.texImage2D (gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.video);
     gl.uniform1i (this.locations['sampler'], 0);
 
     gl.uniform2i (this.locations['resolution'], this.canvas.width, this.canvas.height);
@@ -86,8 +84,6 @@ class VideoShader
     gl.enableVertexAttribArray (0);
     gl.vertexAttribPointer (0, 2, gl.FLOAT, false, 0, 0);
     gl.drawArrays (gl.TRIANGLE_STRIP, 0, 4);
-
-    this.request = requestAnimationFrame (() => this.draw ());
   }
 }
 

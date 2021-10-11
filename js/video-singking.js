@@ -5,7 +5,6 @@ class VideoSingKing extends VideoShader
   constructor (video)
   {
     super (video, FRAGMENT_SHADER);
-    this.draw ();
   }
 }
 

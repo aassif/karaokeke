@@ -85,6 +85,23 @@
                   <input id="song-cdg-lyrics" class="form-control" readonly></input>
                   <!--canvas id="song-cdg-lyrics" class="w-100"></canvas-->
                 </div>
+                <div class="form-group mt-2">
+                  <label>Taille</label>
+                  <div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="song-cdg-height" value="50%" id="song-cdg-height-50" required>
+                      <label class="form-check-label" for="song-cdg-height-50">50&nbsp;%</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="song-cdg-height" value="75%" id="song-cdg-height-75" required>
+                      <label class="form-check-label" for="song-cdg-height-75">75&nbsp;%</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input class="form-check-input" type="radio" name="song-cdg-height" value="100%" id="song-cdg-height-100" required>
+                      <label class="form-check-label" for="song-cdg-height-100">100&nbsp;%</label>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div class="form-group mt-2" id="song-karafun" style="display:none;">
                 <label>Vidéo</label>
@@ -414,6 +431,13 @@
             video.play ();
             // Création du filtre "chroma-key".
             let chroma = new VideoChroma (video, chroma_keys [camera_index]);
+            // Rafraîchissement de l'aperçu.
+            let request = null;
+            let animate = () => {
+              chroma.draw ();
+              request = requestAnimationFrame (animate);
+            };
+            animate ();
             // Gestion du clic sur la vidéo.
             video.onclick = media.ONCLICK (video, rgb => {
               console.log ('onclick', rgb);
@@ -434,6 +458,7 @@
             // Suppression des éléments à la fermeture.
             let listener = () => {
               //console.log ('hidden.bs.modal');
+              cancelAnimationFrame (request);
               body.removeChild (div1);
               body.removeChild (div2);
               chroma.dispose ();

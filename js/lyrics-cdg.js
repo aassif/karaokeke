@@ -44,16 +44,13 @@ class LyricsCDG
     this.position = 0;
     this.palette = new Array (16);
     this.palette.fill ([0, 0, 0]);
-//console.log (this.palette);
     this.buffer = new Uint8Array (W * H);
     this.buffer.fill (0);
-//console.log (this.buffer);
 
     let canvas = document.createElement ('canvas');
     canvas.width  = VW;
     canvas.height = VH;
     this.canvas = canvas;
-    //document.body.appendChild (canvas);
 
     let context = canvas.getContext ('2d');
     this.context = context;
@@ -64,7 +61,7 @@ class LyricsCDG
     return fetch (cdg).
       then (r => r.arrayBuffer ()).
       then (buffer => {
-        console.log (buffer);
+        //console.log (buffer.length);
         this.data = new Uint8Array (buffer);
         this.canvas.style.height = height;
       });
@@ -164,11 +161,10 @@ class LyricsCDG
     //console.log ('TILE_BLOCK_XOR', color0, color1, row, column, pixels);
   }
 
-  decode ()
+  draw ()
   {
     let t = (Date.now () - this.sync);
     let packets = Math.floor (4 * 75 * t / 1000);
-//console.log (packets);
 
     let p0 = this.position;
     let p1 = 24 * packets;
@@ -227,13 +223,7 @@ class LyricsCDG
 
     this.update_canvas ();
 
-    if (p1 < d.length)
-    {
-      this.position = p1;
-      this.request = requestAnimationFrame (() => this.decode ());
-    }
-    else
-      this.context.clearRect (0, 0, 2*VW, 2*VH);
+    this.position = p1;
   }
 
   pixel_color (x, y)
@@ -273,13 +263,11 @@ class LyricsCDG
   {
     this.position = 0;
     this.sync = Date.now ();
-    this.decode ();
   }
 
   stop ()
   {
-    console.log ('lyrics.js', 'STOP!');
-    cancelAnimationFrame (this.request);
+    console.log ('STOP!');
     this.context.clearRect (0, 0, VW, VH);
   }
 }

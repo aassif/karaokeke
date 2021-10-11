@@ -145,6 +145,7 @@ class Properties
     };
     // Nettoyage à la sortie.
     let listener = () => {
+      media.DISPOSE (video);
       colors.innerHTML = '';
       karafun.style.display = 'none';
     };
@@ -174,6 +175,7 @@ class Properties
       });
     // Nettoyage à la sortie.
     let listener = () => {
+      media.DISPOSE (video);
       singking.style.display = 'none';
     };
     this.root.addEventListener ('hidden.bs.modal', listener, {once: true});

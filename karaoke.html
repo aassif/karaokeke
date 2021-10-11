@@ -67,36 +67,8 @@
         switch (m.type)
         {
           case 'play':
-            switch (m.song.type)
-            {
-              case 'mp3+cdg':
-              {
-                let height = m.song['cdg-height'] || '50%';
-                let background = m.song['background'] || '_/nyan_cat.webm';
-                karaoke.play_cdg (m.song.audio, m.song.lyrics, background, height);
-                break;
-              }
-
-              case 'karafun':
-              {
-                let colors = m.song['karafun-colors'] || [];
-                let background = m.song['background'] || m.song.video;
-                karaoke.play_karafun (m.song.video, colors, background);
-                break;
-              }
-
-              case 'singking':
-              {
-                let background = m.song['background'] || m.song.video;
-                karaoke.play_singking (m.song.video, background);
-                break;
-              }
-
-              default:
-                console.log (m.song);
-            }
+            karaoke.play (m.song);
             break;
-
 
           case 'stop':
             karaoke.stop ();

@@ -18,7 +18,6 @@ class VideoKaraFun extends VideoShader
     this.register_uniform ('colors[1]');
     this.register_uniform ('colors[2]');
     this.register_uniform ('colors[3]');
-    this.draw ();
   }
 
   update_uniforms ()
