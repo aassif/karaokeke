@@ -70,7 +70,7 @@ class Karaoke
     });
   }
 
-  play_cdg (mp3, cdg, background, height)
+  play_cdg (mp3, cdg, background, offset, height)
   {
     this.song = {
       type: 'mp3+cdg',
@@ -82,7 +82,7 @@ class Karaoke
     [
       this.song.lyrics.load ('songs/'+cdg, height),
       media.LOAD (this.song.audio, 'songs/'+mp3),
-      media.LOAD (this.background, 'songs/'+background)
+      media.LOAD (this.background, 'songs/'+background, offset < 0 ? -offset/1000 : 0)
     ];
 
     Promise.all (promises).then (() => {
@@ -90,11 +90,11 @@ class Karaoke
       this.lyrics.appendChild (this.song.lyrics.canvas);
       this.items.add (this.song.lyrics);
       this.song.audio.play ();
-      this.background.play ();
+      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
     });
   }
 
-  play_karafun (video, colors, background)
+  play_karafun (video, colors, background, offset)
   {
     this.song = {
       type: 'karafun',
@@ -105,21 +105,21 @@ class Karaoke
     let promises =
     [
       media.LOAD (this.song.video, 'songs/'+video),
-      media.LOAD (this.background, 'songs/'+background)
+      media.LOAD (this.background, 'songs/'+background, offset < 0 ? -offset/1000 : 0)
     ];
 
     Promise.all (promises).then (() => {
-      this.song.video.play ().then (() => {
+      this.song.video.play ().then ( () => {
         this.song.lyrics = new VideoKaraFun (this.song.video, colors);
         this.lyrics.appendChild (this.song.lyrics.canvas);
         let listener = () => this.items.add (this.song.lyrics);
         this.song.video.addEventListener ('timeupdate', listener, {once: true});
       });
-      this.background.play ();
+      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
     });
   }
 
-  play_singking (video, background)
+  play_singking (video, background, offset)
   {
     this.song = {
       type: 'singking',
@@ -130,7 +130,7 @@ class Karaoke
     let promises =
     [
       media.LOAD (this.song.video, 'songs/'+video),
-      media.LOAD (this.background, 'songs/'+background)
+      media.LOAD (this.background, 'songs/'+background, offset < 0 ? -offset/1000 : 0)
     ];
 
     Promise.all (promises).then (() => {
@@ -140,7 +140,7 @@ class Karaoke
         let listener = () => this.items.add (this.song.lyrics);
         this.song.video.addEventListener ('timeupdate', listener, {once: true});
       });
-      this.background.play ();
+      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
     });
   }
 
@@ -154,7 +154,8 @@ class Karaoke
       {
         let height = song['cdg-height'] || DEFAULT_CDG_HEIGHT;
         let background = song['background'] || DEFAULT_BACKGROUND;
-        this.play_cdg (song.audio, song.lyrics, background, height);
+        let offset = song['background-offset'] || 0;
+        this.play_cdg (song.audio, song.lyrics, background, offset, height);
         break;
       }
 
@@ -162,14 +163,16 @@ class Karaoke
       {
         let colors = song['karafun-colors'] || [];
         let background = song['background'] || song.video;
-        this.play_karafun (song.video, colors, background);
+        let offset = song['background-offset'] || 0;
+        this.play_karafun (song.video, colors, background, offset);
         break;
       }
 
       case 'singking':
       {
         let background = song['background'] || song.video;
-        this.play_singking (song.video, background);
+        let offset = song['background-offset'] || 0;
+        this.play_singking (song.video, background, offset);
         break;
       }
 

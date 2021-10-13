@@ -1,4 +1,4 @@
-function LOAD (media, path)
+function LOAD (media, path, offset = 0)
 {
   return fetch (path).
     then (response => response.blob ()).
@@ -7,6 +7,7 @@ function LOAD (media, path)
         media.addEventListener ('canplaythrough', resolve);
       })
       media.src = URL.createObjectURL (blob);
+      media.currentTime = offset;
       return promise;
     });
 }
