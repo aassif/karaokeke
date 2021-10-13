@@ -8,12 +8,25 @@ class VideoChroma extends VideoShader
 
     this.chroma_key = chroma_key;
     this.register_uniform ('chroma_key');
+
+    this.mirror_vertical = false;
+    this.register_uniform ('mirror_vertical');
+
+    this.mirror_horizontal = false;
+    this.register_uniform ('mirror_horizontal');
+
+    this.rotate = false;
+    this.register_uniform ('time');
   }
 
   update_uniforms ()
   {
+    let l = this.locations;
     let k = this.chroma_key.map (x => x/255);
-    this.gl.uniform3fv (this.locations['chroma_key'], new Float32Array (k));
+    this.gl.uniform3fv (l['chroma_key'],        new Float32Array (k));
+    this.gl.uniform1i  (l['mirror_vertical'],   this.mirror_vertical);
+    this.gl.uniform1i  (l['mirror_horizontal'], this.mirror_horizontal);
+    this.gl.uniform1f  (l['time'],              this.rotate ? performance.now () / 2000 : 0);
   }
 }
 
@@ -21,6 +34,12 @@ const FRAGMENT_SHADER = `#version 300 es
 precision mediump float;
 
 uniform sampler2D sampler;
+uniform ivec2 resolution;
+uniform vec3 chroma_key;
+
+uniform float time;
+uniform bool mirror_vertical;
+uniform bool mirror_horizontal;
 
 in vec2 coords;
 
@@ -47,8 +66,6 @@ vec3 chroma_yuv (vec3 rgb)
   return vec3 (M * vec4 (rgb, 1));
 }
 
-uniform vec3 chroma_key;
-
 const vec2 chroma_range = vec2 (0.05, 0.10);
 
 float chroma_mask (vec3 rgb)
@@ -67,9 +84,34 @@ vec4 chroma (vec3 rgb)
 
 // M A I N /////////////////////////////////////////////////////////////////////
 
+vec2 fx_rotate (vec2 c)
+{
+  float t = time;
+  vec2 r = vec2 (resolution);
+  mat2 R = mat2 (cos (t), -sin (t), sin (t), cos (t));
+  return 0.5 + (R * ((c - 0.5) * r) / r);
+}
+
+float fx_mirror_vertical (float x)
+{
+  return mirror_vertical ? (x < 0.5 ? x : 1.0 - x) : x;
+}
+
+float fx_mirror_horizontal (float y)
+{
+  return mirror_horizontal ? (y > 0.5 ? y : 1.0 - y) : y;
+}
+
+vec2 fx ()
+{
+  float x = fx_mirror_vertical   (coords.x);
+  float y = fx_mirror_horizontal (coords.y);
+  return fx_rotate (vec2 (x, y));
+}
+
 void main ()
 {
-  color = chroma (texture (sampler, coords).rgb);
+  color = chroma (texture (sampler, fx ()).rgb);
 }`;
 
 export default VideoChroma;

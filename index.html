@@ -169,7 +169,7 @@
         </div>
       </div>
     </div>
-    <!-- Barre d'outils -->
+    <!-- Barre de navigation -->
     <nav class="navbar navbar-expand-md navbar-light fixed-top bg-light">
       <div class="container-fluid">
         <a class="navbar-brand" href="#">Karaokéké</a>
@@ -179,8 +179,8 @@
         </form>
       </div>
     </nav>
-    <!-- Barre d'outils -->
-    <div class="btn-group-vertical float-start m-2 fixed-top" role="toolbar" style="top:56px;right:auto;">
+    <!-- Barres d'outils -->
+    <div class="btn-group-vertical m-2 fixed-top" role="toolbar" style="top:56px;right:auto;">
       <div class="btn-group-vertical mb-2" role="group">
         <button type="button" class="btn btn-light" id="toolbar-camera" data-bs-toggle="modal" data-bs-target="#camera-list" disabled><i class="bi-camera-video"></i></button>
         <button type="button" class="btn btn-light" id="toolbar-chroma" data-bs-toggle="modal" data-bs-target="#chroma-picker" disabled><i class="bi-eyedropper"></i></button>
@@ -192,9 +192,15 @@
       <div class="btn-group-vertical mb-2" role="group">
         <button type="button" class="btn btn-light" id="toolbar-stop"><i class="bi-stop-fill"></i></button>
       </div>
+    </div>
+    <div class="btn-group-vertical m-2 fixed-top" role="toolbar" style="top:56px;left:auto;">
       <div class="btn-group-vertical" role="group">
-        <button type="button" class="btn btn-light" disabled><i class="bi-symmetry-vertical"></i></button>
-        <button type="button" class="btn btn-light" disabled><i class="bi-arrow-clockwise"></i></button>
+        <input type="checkbox" class="btn-check" id="toolbar-fx-mirror-vertical" autocomplete="off">
+        <label class="btn btn-outline-secondary" for="toolbar-fx-mirror-vertical"><i class="bi-symmetry-vertical"></i></label>
+        <input type="checkbox" class="btn-check" id="toolbar-fx-mirror-horizontal" autocomplete="off">
+        <label class="btn btn-outline-secondary" for="toolbar-fx-mirror-horizontal"><i class="bi-symmetry-horizontal"></i></label>
+        <input type="checkbox" class="btn-check" id="toolbar-fx-rotate" autocomplete="off">
+        <label class="btn btn-outline-secondary" for="toolbar-fx-rotate"><i class="bi-arrow-clockwise"></i></label>
       </div>
     </div>
     <!-- Liste des chansons -->
@@ -496,6 +502,21 @@
         {
           let button = document.getElementById ('toolbar-stop');
           button.onclick = () => karaoke.postMessage ({type: 'stop'});
+        }
+
+        {
+          let input = document.getElementById ('toolbar-fx-mirror-vertical');
+          input.onchange = () => karaoke.postMessage ({type: 'mirror-vertical', mirror: input.checked});
+        }
+
+        {
+          let input = document.getElementById ('toolbar-fx-mirror-horizontal');
+          input.onchange = () => karaoke.postMessage ({type: 'mirror-horizontal', mirror: input.checked});
+        }
+
+        {
+          let input = document.getElementById ('toolbar-fx-rotate');
+          input.onchange = () => karaoke.postMessage ({type: 'rotate', rotate: input.checked});
         }
       }
 

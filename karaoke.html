@@ -83,6 +83,21 @@
               karaoke.chroma.chroma_key = m['chroma-key'];
             break;
 
+          case 'mirror-vertical':
+            if (karaoke.chroma)
+              karaoke.chroma.mirror_vertical = m.mirror;
+            break;
+
+          case 'mirror-horizontal':
+            if (karaoke.chroma)
+              karaoke.chroma.mirror_horizontal = m.mirror;
+            break;
+
+          case 'rotate':
+            if (karaoke.chroma)
+              karaoke.chroma.rotate = m.rotate;
+            break;
+
           default:
             console.log (m);
         }

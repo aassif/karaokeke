@@ -5,15 +5,11 @@ class VideoShader
     let canvas = document.createElement ('canvas');
 
     console.log (video.videoWidth, video.videoHeight);
-    //canvas.width  = video.videoWidth;
-    //canvas.height = video.videoHeight;
-    //canvas.width = 800;
-    //canvas.height = 800 * video.videoHeight / video.videoWidth;
     canvas.width = 480 * video.videoWidth / video.videoHeight;
     canvas.height = 480;
     this.canvas = canvas;
 
-    let gl = canvas.getContext ('webgl2', {preserveDrawingBuffer: true, premultipliedAlpha: false});
+    let gl = canvas.getContext ('webgl2', {premultipliedAlpha: false});
     this.gl = gl;
 
     let program = PROGRAM (gl, VERTEX_SHADER, fragment);
