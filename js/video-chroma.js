@@ -94,7 +94,7 @@ vec2 fx_rotate (vec2 c)
 
 float fx_mirror_vertical (float x)
 {
-  return mirror_vertical ? (x < 0.5 ? x : 1.0 - x) : x;
+  return mirror_vertical ? (x > 0.5 ? x : 1.0 - x) : x;
 }
 
 float fx_mirror_horizontal (float y)

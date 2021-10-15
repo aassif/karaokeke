@@ -34,6 +34,15 @@ function BUTTON_PLUS ()
   return button;
 }
 
+function BLOCK_SET (block, display, disabled)
+{
+  block.style.display = display;
+  Array.from (block.querySelectorAll ('input')).forEach (input => input.disabled = disabled);
+}
+
+const BLOCK_SHOW = block => BLOCK_SET (block, 'block', false);
+const BLOCK_HIDE = block => BLOCK_SET (block, 'node',  true);
+
 class Properties
 {
   constructor (id, onsuccess, onerror)
@@ -60,12 +69,12 @@ class Properties
   {
     // Affichage du bloc dédié.
     let cdg = this.get ('#song-cdg');
-    cdg.style.display = 'block';
+    BLOCK_SHOW (cdg);
     // Variables dédiées.
     this.set ('#song-cdg-audio', this.song.audio);
     this.set ('#song-cdg-lyrics', this.song.lyrics);
     // Nettoyage à la sortie.
-    let listener = () => {cdg.style.display = 'none';};
+    let listener = () => BLOCK_HIDE (cdg);
     this.root.addEventListener ('hidden.bs.modal', listener, {once: true});
   }
 
@@ -77,10 +86,9 @@ class Properties
   {
     // Variables locales.
     let active = -1;
-    let paused = false;
     // Affichage du bloc KaraFun.
     let karafun = this.get ('#song-karafun');
-    karafun.style.display = 'block';
+    BLOCK_SHOW (karafun);
     // Propriétés KaraFun.
     let colors = this.get ('#song-karafun-colors');
     let data = this.song['karafun-colors'] || [];
@@ -130,24 +138,22 @@ class Properties
     let pause = this.get ('#song-karafun-pause');
     pause.innerHTML = '<i class="bi-pause-fill"></i>';
     pause.onclick = () => {
-      if (paused)
+      if (video.paused)
       {
         video.play ();
         pause.innerHTML = '<i class="bi-pause-fill"></i>';
-        paused = false;
       }
       else
       {
         video.pause ();
         pause.innerHTML = '<i class="bi-play-fill"></i>';
-        paused = true;
       }
     };
     // Nettoyage à la sortie.
     let listener = () => {
       media.DISPOSE (video);
       colors.innerHTML = '';
-      karafun.style.display = 'none';
+      BLOCK_HIDE (karafun);
     };
     this.root.addEventListener ('hidden.bs.modal', listener, {once: true});
   }
@@ -166,7 +172,7 @@ class Properties
   {
     // Affichage du bloc SingKing.
     let singking = this.get ('#song-singking');
-    singking.style.display = 'block';
+    BLOCK_SHOW (singking);
     // Propriétés SingKing.
     let video = this.get ('#song-singking-video');
     media.LOAD (video, 'songs/'+this.song.video).
@@ -176,7 +182,7 @@ class Properties
     // Nettoyage à la sortie.
     let listener = () => {
       media.DISPOSE (video);
-      singking.style.display = 'none';
+      BLOCK_HIDE (singking);
     };
     this.root.addEventListener ('hidden.bs.modal', listener, {once: true});
   }
