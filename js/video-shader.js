@@ -1,3 +1,7 @@
+import * as fit from "./fit.js";
+
+const H480 = fit.HEIGHT (480);
+
 class VideoShader
 {
   constructor (video, fragment)
@@ -5,8 +9,9 @@ class VideoShader
     let canvas = document.createElement ('canvas');
 
     console.log (video.videoWidth, video.videoHeight);
-    canvas.width = 480 * video.videoWidth / video.videoHeight;
-    canvas.height = 480;
+    let [w, h] = H480 (video.videoWidth, video.videoHeight);
+    canvas.width  = w;
+    canvas.height = h;
     this.canvas = canvas;
 
     let gl = canvas.getContext ('webgl2', {premultipliedAlpha: false});
