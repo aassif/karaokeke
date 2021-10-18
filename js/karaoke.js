@@ -5,7 +5,7 @@ import VideoKaraFun  from "./video-karafun.js";
 import VideoSingKing from "./video-singking.js";
 import * as media    from "./media.js";
 
-const DEFAULT_BACKGROUND = '_/nyan_cat.webm';
+const DEFAULT_BACKGROUND = 'backgrounds/nyan_cat.webm';
 const DEFAULT_CDG_HEIGHT = '50%';
 
 class DrawList
@@ -80,9 +80,9 @@ class Karaoke
 
     let promises =
     [
-      this.song.lyrics.load ('songs/'+cdg, height),
-      media.LOAD (this.song.audio, 'songs/'+mp3),
-      media.LOAD (this.background, 'songs/'+background, offset < 0 ? -offset/1000 : 0)
+      this.song.lyrics.load (cdg, height),
+      media.LOAD (this.song.audio, mp3),
+      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
     ];
 
     Promise.all (promises).then (() => {
@@ -104,8 +104,8 @@ class Karaoke
 
     let promises =
     [
-      media.LOAD (this.song.video, 'songs/'+video),
-      media.LOAD (this.background, 'songs/'+background, offset < 0 ? -offset/1000 : 0)
+      media.LOAD (this.song.video, video),
+      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
     ];
 
     Promise.all (promises).then (() => {
@@ -129,8 +129,8 @@ class Karaoke
 
     let promises =
     [
-      media.LOAD (this.song.video, 'songs/'+video),
-      media.LOAD (this.background, 'songs/'+background, offset < 0 ? -offset/1000 : 0)
+      media.LOAD (this.song.video, video),
+      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
     ];
 
     Promise.all (promises).then (() => {
@@ -148,31 +148,38 @@ class Karaoke
   {
     this.stop ();
 
+    // Chemin d'un fichier.
+    let P = f => 'songs/' + song.id + '/' + f;
+
     switch (song.type)
     {
       case 'mp3+cdg':
       {
+        let audio = P (song.audio);
+        let lyrics = P (song.lyrics);
         let height = song['cdg-height'] || DEFAULT_CDG_HEIGHT;
-        let background = song['background'] || DEFAULT_BACKGROUND;
+        let background = song['background'] ? P (song['background']) : DEFAULT_BACKGROUND;
         let offset = song['background-offset'] || 0;
-        this.play_cdg (song.audio, song.lyrics, background, offset, height);
+        this.play_cdg (audio, lyrics, background, offset, height);
         break;
       }
 
       case 'karafun':
       {
+        let video = P (song.video);
         let colors = song['karafun-colors'] || [];
-        let background = song['background'] || song.video;
+        let background = song['background'] ? P (song['background']) : video;
         let offset = song['background-offset'] || 0;
-        this.play_karafun (song.video, colors, background, offset);
+        this.play_karafun (video, colors, background, offset);
         break;
       }
 
       case 'singking':
       {
-        let background = song['background'] || song.video;
+        let video = P (song.video);
+        let background = song['background'] ? P (song['background']) : video;
         let offset = song['background-offset'] || 0;
-        this.play_singking (song.video, background, offset);
+        this.play_singking (video, background, offset);
         break;
       }
 

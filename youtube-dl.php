@@ -2,7 +2,7 @@
 
 header ('Content-Type: application/json');
 
-define ('FORMAT', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4');
+define ('FORMAT', 'bestvideo[height<=720,ext=mp4]+bestaudio[ext=m4a]/mp4');
 
 function error ($message)
 {

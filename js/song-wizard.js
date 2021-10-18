@@ -32,12 +32,12 @@ class Wizard
     let video  = this.get ('#new-video').value;
     let type   = this.get('input[name="new-video-type"]:checked').value;
 
-    let filename = STR (artist) + '-' + STR (title) + '/lyrics.mp4';
-    console.log (filename);
+    let id = STR (artist) + '-' + STR (title);
+    console.log (id);
 
     this.modal.hide ();
 
-    let q = new URLSearchParams ([['url', video], ['output', 'songs/'+filename]]);
+    let q = new URLSearchParams ([['url', video], ['output', 'songs/' + id + '/lyrics.mp4']]);
     let url = 'youtube-dl.php?' + q.toString ();
     console.log (url);
 
@@ -45,7 +45,7 @@ class Wizard
       then (r => r.json ()).
       then (json => {
         if (json.success)
-          this.onsuccess ({artist, title, type, video: filename});
+          this.onsuccess ({artist, title, type, video: 'lyrics.mp4', id, download: true});
         else
           this.onerror ({artist, title, message: json.error});
       });

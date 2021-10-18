@@ -1,6 +1,13 @@
 import VideoShader from "./video-shader.js";
 
-const RGB = rgb => new Float32Array (rgb.map (x => x/255.0));
+const DEFAULT_COLOR = '#ffffff';
+
+function RGB (hex)
+{
+  const REGEX = /#([0-9a-f]{6})$/i;
+  let m = hex.match (REGEX);
+  return new Float32Array ([0, 2, 4].map (k => parseInt (m[1].substr (k, 2), 16) / 255.0));
+}
 
 function PAD (T, n, zero)
 {
@@ -13,7 +20,7 @@ class VideoKaraFun extends VideoShader
   constructor (video, colors)
   {
     super (video, FRAGMENT_SHADER);
-    this.colors = PAD (colors, 4, [255, 255, 255]);
+    this.colors = PAD (colors, 4, DEFAULT_COLOR);
     this.register_uniform ('colors[0]');
     this.register_uniform ('colors[1]');
     this.register_uniform ('colors[2]');

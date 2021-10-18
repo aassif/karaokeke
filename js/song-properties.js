@@ -3,7 +3,7 @@ import * as media from "./media.js";
 
 const COLOR = rgb => '#' + rgb.map (x => x.toString (16).padStart (2, '0')).join ('');
 
-const DEFAULT_COLOR = [255, 255, 255];
+const DEFAULT_COLOR = '#ffffff';
 
 function BUTTON ()
 {
@@ -22,6 +22,7 @@ function BUTTON_COLOR (color)
 {
   let button = BUTTON ();
   button.classList.add (...BUTTON_COLOR_CLASSES);
+  button.setAttribute ('data-karafun-color', color);
   button.style.backgroundColor = color;
   button.title = color.toUpperCase ();
   return button;
@@ -30,18 +31,18 @@ function BUTTON_COLOR (color)
 function BUTTON_PLUS ()
 {
   let button = BUTTON ();
-  button.innerHTML = '<i class="bi-plus-lg" style="pointer-events: none;"></i>';
+  button.innerHTML = '<i class="bi-plus-lg pe-none"></i>';
   return button;
 }
 
 function BLOCK_SET (block, display, disabled)
 {
   block.style.display = display;
-  Array.from (block.querySelectorAll ('input')).forEach (input => input.disabled = disabled);
+  block.querySelectorAll ('input').forEach (input => input.disabled = disabled);
 }
 
 const BLOCK_SHOW = block => BLOCK_SET (block, 'block', false);
-const BLOCK_HIDE = block => BLOCK_SET (block, 'node',  true);
+const BLOCK_HIDE = block => BLOCK_SET (block, 'none',  true);
 
 class Properties
 {
@@ -73,6 +74,9 @@ class Properties
     // Variables dédiées.
     this.set ('#song-cdg-audio', this.song.audio);
     this.set ('#song-cdg-lyrics', this.song.lyrics);
+    let h = this.song['cdg-height'] || '50%';
+    let inputs = cdg.querySelectorAll ('input[name="song-cdg-height"]');
+    inputs.forEach (input => input.checked = input.value === h);
     // Nettoyage à la sortie.
     let listener = () => BLOCK_HIDE (cdg);
     this.root.addEventListener ('hidden.bs.modal', listener, {once: true});
@@ -92,8 +96,7 @@ class Properties
     // Propriétés KaraFun.
     let colors = this.get ('#song-karafun-colors');
     let data = this.song['karafun-colors'] || [];
-    data.forEach ((rgb, k) => {
-      let c = COLOR (rgb);
+    data.forEach ((c, k) => {
       let button = BUTTON_COLOR (c);
       button.onclick = () => {active = k;};
       colors.appendChild (button);
@@ -106,7 +109,8 @@ class Properties
         active = k;
         // Transformation du bouton.
         e.target.classList.add (...BUTTON_COLOR_CLASSES);
-        e.target.backgroundColor = COLOR (DEFAULT_COLOR);
+        e.target.setAttribute ('data-karafun-color', DEFAULT_COLOR);
+        e.target.backgroundColor = DEFAULT_COLOR;
         e.target.innerHTML = '';
         e.target.onclick = () => {active = k;};
         // Nouveau bouton "plus".
@@ -123,15 +127,17 @@ class Properties
       plus.onclick = callback (data.length);
     }
     let video = this.get ('#song-karafun-video');
-    media.LOAD (video, 'songs/'+this.song.video).
+    media.LOAD (video, 'songs/' + this.song.id + '/' + this.song.video).
       then (() => {
         video.play ();
         video.onclick = media.ONCLICK (video, rgb => {
           console.log (rgb);
           if (active != -1)
           {
+            let c = COLOR (rgb);
             let buttons = colors.querySelectorAll ('button.karafun-color');
-            buttons [active].style.backgroundColor = COLOR (rgb);
+            buttons [active].setAttribute ('data-karafun-color', c);
+            buttons [active].style.backgroundColor = c;
           }
         });
       });
@@ -160,10 +166,9 @@ class Properties
 
   apply_karafun ()
   {
-    const REGEX = /^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/;
     let buttons = this.root.querySelectorAll ('.karafun-color');
-    let colors = Array.from (buttons).map (c => c.style.backgroundColor.match (REGEX));
-    let c = colors.filter (c => c !== null).map (c => c.slice (1).map (x => parseInt (x)));
+    let colors = Array.from (buttons).map (c => c.getAttribute ('data-karafun-color'));
+    let c = colors.filter (c => c !== null);
     console.log (colors, c);
     this.song['karafun-colors'] = c;
   }
@@ -175,7 +180,7 @@ class Properties
     BLOCK_SHOW (singking);
     // Propriétés SingKing.
     let video = this.get ('#song-singking-video');
-    media.LOAD (video, 'songs/'+this.song.video).
+    media.LOAD (video, 'songs/' + this.song.id + '/' + this.song.video).
       then (() => {
         video.play ();
       });
@@ -263,7 +268,7 @@ class Properties
         console.log (this.song.type);
     }
 
-    let dir = STR (this.song.artist) + '-' + STR (this.song.title);
+    let dir = 'songs/' + this.song.id;
     let icon = this.get ('#song-icon input').value;
     console.log (dir);
 
@@ -273,7 +278,7 @@ class Properties
     {
       console.log (icon);
 
-      let q = new URLSearchParams ([['url', icon], ['dir', 'songs/' + dir]]);
+      let q = new URLSearchParams ([['url', icon], ['dir', dir]]);
       let url = 'icon.php?' + q.toString ();
       console.log (url);
 
@@ -282,7 +287,8 @@ class Properties
         then (json => {
           if (json.success)
           {
-            this.song.icon = dir + '/' + json.result;
+            console.log (json.result);
+            this.song.icon = json.result;
             this.onsuccess (this.song);
           }
           else

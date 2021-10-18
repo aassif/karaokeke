@@ -190,7 +190,6 @@
       </div>
       <div class="btn-group-vertical mb-2" role="group">
         <button type="button" class="btn btn-light" id="toolbar-new-song" data-bs-toggle="modal" data-bs-target="#new-song"><i class="bi-cloud-plus"></i></button>
-        <button type="button" class="btn btn-light" id="toolbar-download"><i class="bi-download"></i></button>
       </div>
       <div class="btn-group-vertical mb-2" role="group">
         <button type="button" class="btn btn-danger" id="toolbar-stop"><i class="bi-stop-fill"></i></button>
@@ -221,12 +220,17 @@
       let selection = [];
       let confirm_reload = true; // FIXME?
 
-      function download ()
+      function dl (song)
       {
+        let id = song.id;
+        let o = {...song};
+        delete o.id;
+        delete o.download;
+
         let a = document.createElement ('a');
-        let file = new Blob ([JSON.stringify (songs, null, 2)], {type: 'text/json'});
+        let file = new Blob ([JSON.stringify (o, null, 2)], {type: 'text/json'});
         a.href = URL.createObjectURL (file);
-        a.download = 'songs.json';
+        a.download = id + '.json';
         a.click ();
       }
 
@@ -273,8 +277,9 @@
       // Propriétés d'une chanson.
       let properties = new Properties ('song-properties',
         song => {
+          song.download = true;
           confirm_reload = true;
-          toast_success (song.artist + ' - ' + song.title, 'Modifications enregistrées');
+          toast_success (song.artist + ' - ' + song.title, 'Modifications effectuées');
           song_list ();
         },
         (song, error) => {
@@ -286,13 +291,26 @@
         song => {
           confirm_reload = true;
           toast_success (song.artist + ' - ' + song.title, 'Téléchargement terminé');
-          //selection = [song];
           songs.unshift (song);
           song_list ();
         },
         error => {
           toast_error (error.artist + ' - ' + error.title, error.message);
         });
+
+      function fetch_song (id)
+      {
+        return fetch ('songs/' + id + '/song.json').
+          then (r => r.json ()).
+          then (json => songs.push ({...json, id}));
+      }
+
+      function fetch_songs (file)
+      {
+        return fetch ('songs.json').
+          then (r => r.json ()).
+          then (json => Promise.all (json.map (id => fetch_song (id))));
+      }
 
       function song_item_icon (song)
       {
@@ -302,7 +320,7 @@
         if (/^https?:\/\//.test (song.icon))
           return song.icon;
 
-        return 'songs/' + song.icon;
+        return 'songs/' + song.id + '/' + song.icon;
       }
 
       function song_item (song)
@@ -323,14 +341,20 @@
         text.className = 'd-flex flex-column flex-grow-1 m-1';
         text.append (title, artist);
 
+        let download = document.createElement ('button');
+        download.className = 'btn';
+        download.innerHTML = '<i class="bi-exclamation-triangle text-warning"></i>';
+        download.style.display = song.download ? 'block' : 'none';
+        download.onclick = () => dl (song);
+
         let settings = document.createElement ('button');
-        settings.className = 'btn m-1';
+        settings.className = 'btn';
         settings.innerHTML = '<i class="bi-three-dots"></i>';
         settings.onclick = () => properties.show (song);
 
         let li = document.createElement ('li');
         li.className = 'list-group-item d-flex flex-row align-items-center';
-        li.append (img, text, settings);
+        li.append (img, text, download, settings);
         return li;
       }
 
@@ -344,7 +368,7 @@
         });
       }
 
-      function STR (s)
+      function ASCII (s)
       {
         return s.normalize ('NFD').replace (/\p{Diacritic}/gu, '').toLowerCase ();
       }
@@ -353,9 +377,10 @@
       {
         let f = e.target;
         //window.scrollTo ({top: 0, behavior: 'instant'});
-        let q = STR (f.querySelector ('input').value);
+        let q = ASCII (f.querySelector ('input').value);
         let r = new RegExp ('\\b' + q);
-        selection = songs.filter (song => r.test (STR (song.title)) || r.test (STR (song.artist)));
+        let t = str => r.test (ASCII (str));
+        selection = songs.filter (song => t (song.title) || t (song.artist));
         song_list ();
         return false;
       }
@@ -487,18 +512,12 @@
           return 0;
         }
 
-        fetch ('songs.json').
-          then (r => r.json ()).
-          then (json => {
-            songs = json.sort (SONG_ORDER);
+        fetch_songs ('songs.json').
+          then (() => {
+            songs = songs.sort (SONG_ORDER);
             selection = songs;
             song_list ();
           });
-
-        {
-          let button = document.getElementById ('toolbar-download');
-          button.onclick = download;
-        }
 
         {
           let button = document.getElementById ('toolbar-stop');
