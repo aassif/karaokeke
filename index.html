@@ -307,7 +307,7 @@
 
       function fetch_songs (file)
       {
-        return fetch ('songs.json').
+        return fetch ('songs.php').
           then (r => r.json ()).
           then (json => Promise.all (json.map (id => fetch_song (id))));
       }
