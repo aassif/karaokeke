@@ -102,6 +102,19 @@
             console.log (m);
         }
       });
+
+      if (window.opener)
+      {
+        function ready ()
+        {
+          if (! karaoke.camera.constraints)
+          {
+            window.opener.postMessage ('ready');
+            setTimeout (ready, 1000);
+          }
+        }
+        ready ();
+      }
     </script>
   </body>
 </html>

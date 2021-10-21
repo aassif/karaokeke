@@ -401,6 +401,7 @@
         Camera.ENUMERATE (CAMERA_RATIO).then (cameras => {
           function post_camera ()
           {
+            console.log ('post_camera');
             let constraints = cameras [camera_index].constraints;
             let chroma_key = chroma_keys [camera_index];
             karaoke.postMessage ({type: 'camera', constraints, 'chroma-key': chroma_key});
@@ -426,7 +427,6 @@
           let chroma_keys = cameras.map (() => [0, 255, 0]); 
           // Caméra par défaut.
           let camera_index = 0;
-          post_camera ();
           // Ajout des caméras à la fenêtre de sélection.
           let camera_modal = document.getElementById ('camera-list');
           let camera_modal_body = document.querySelector ('.modal-body');
@@ -499,6 +499,16 @@
               chroma.dispose ();
             };
             modal.addEventListener ('hidden.bs.modal', listener, {once: true});
+          });
+
+          // Caméra à la demande.
+          window.addEventListener ('message', e => {
+            switch (e.data)
+            {
+              case 'ready':
+                post_camera ();
+                break;
+            }
           });
         });
 
