@@ -30,12 +30,11 @@ class Wizard
     let artist = this.get ('#new-artist').value;
     let title  = this.get ('#new-title').value;
     let video  = this.get ('#new-video').value;
+
     let type   = this.get('input[name="new-video-type"]:checked').value;
 
     let id = STR (artist) + '-' + STR (title);
     console.log (id);
-
-    this.modal.hide ();
 
     let dir = 'songs/' + id;
     let q = new URLSearchParams ([['url', video], ['dir', dir]]);
@@ -54,6 +53,8 @@ class Wizard
         else
           this.onerror ({artist, title, message: json.error});
       });
+
+    this.modal.hide ();
   }
 }
 

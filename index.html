@@ -73,10 +73,6 @@
                 <label>Titre</label>
                 <input id="song-title" class="form-control"></input>
               </div>
-              <div id="song-icon" class="form-group mt-2" style="display:none;">
-                <label>Jaquette</label>
-                <input class="form-control"></input>
-              </div>
               <div id="song-cdg" style="display:none;">
                 <div class="form-group mt-2">
                   <label>Audio</label>
@@ -119,6 +115,14 @@
               <div class="form-group mt-2" id="song-singking" style="display:none;">
                 <label>Vidéo</label>
                 <video muted id="song-singking-video" class="w-100"></video>
+              </div>
+              <div id="song-background" class="form-group mt-2" style="display:none;">
+                <label>Arrière-plan</label>
+                <input class="form-control"></input>
+              </div>
+              <div id="song-icon" class="form-group mt-2" style="display:none;">
+                <label>Illustration</label>
+                <input class="form-control"></input>
               </div>
               <button type="submit" class="d-none">Bouton caché mais nécessaire</button>
             </form>
@@ -276,10 +280,9 @@
 
       // Propriétés d'une chanson.
       let properties = new Properties ('song-properties',
-        song => {
-          song.download = true;
+        (song, message) => {
           confirm_reload = true;
-          toast_success (song.artist + ' - ' + song.title, 'Modifications effectuées');
+          toast_success (song.artist + ' - ' + song.title, message);
           song_list ();
         },
         (song, error) => {

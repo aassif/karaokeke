@@ -1,9 +1,9 @@
-import STR        from "./str.js";
 import * as media from "./media.js";
 
 const COLOR = rgb => '#' + rgb.map (x => x.toString (16).padStart (2, '0')).join ('');
 
 const DEFAULT_COLOR = '#ffffff';
+const DEFAULT_HEIGHT = '50%';
 
 function BUTTON ()
 {
@@ -74,7 +74,7 @@ class Properties
     // Variables dédiées.
     this.set ('#song-cdg-audio', this.song.audio);
     this.set ('#song-cdg-lyrics', this.song.lyrics);
-    let h = this.song['cdg-height'] || '50%';
+    let h = this.song['cdg-height'] || DEFAULT_HEIGHT;
     let inputs = cdg.querySelectorAll ('input[name="song-cdg-height"]');
     inputs.forEach (input => input.checked = input.value === h);
     // Nettoyage à la sortie.
@@ -84,6 +84,7 @@ class Properties
 
   apply_cdg ()
   {
+    return false;
   }
 
   show_karafun ()
@@ -168,9 +169,12 @@ class Properties
   {
     let buttons = this.root.querySelectorAll ('.karafun-color');
     let colors = Array.from (buttons).map (c => c.getAttribute ('data-karafun-color'));
-    let c = colors.filter (c => c !== null);
-    console.log (colors, c);
-    this.song['karafun-colors'] = c;
+    let c1 = colors.filter (c => c !== null);
+
+    let c0 = this.song['karafun-colors'] || [];
+    let m = c0.length !== c1.length || c0.some ((v, k) => c0[k] !== c1[k]);
+    this.song['karafun-colors'] = c1;
+    return m;
   }
 
   show_singking ()
@@ -194,10 +198,14 @@ class Properties
 
   apply_singking ()
   {
+    return false;
   }
 
   show (song)
   {
+    // Remise à zéro.
+    this.get ('form').reset ();
+
     // Chanson en cours d'édition.
     this.song = song;
 
@@ -205,14 +213,13 @@ class Properties
     this.set ('#song-title', this.song.title);
     this.set ('#song-artist', this.song.artist);
 
+    // Vidéo de fond.
+    let background = this.get ('#song-background');
+    if (! this.song.background) BLOCK_SHOW (background);
+
     // Jaquette.
     let icon = this.get ('#song-icon');
-    let input = icon.querySelector ('input');
-    if (! this.song.icon)
-    {
-      icon.style.display = 'block';
-      input.disabled = false;
-    }
+    if (! this.song.icon) BLOCK_SHOW (icon);
 
     switch (this.song.type)
     {
@@ -234,49 +241,93 @@ class Properties
 
     // Nettoyage à la sortie.
     let listener = () => {
-      icon.style.display = 'none';
-      input.disabled = true;
-      input.value = '';
-    };
+      BLOCK_HIDE (background);
+      BLOCK_HIDE (icon);
+    }
     this.root.addEventListener ('hidden.bs.modal', listener, {once: true});
 
     this.modal.show ();
+  }
+
+  apply_input (key, selector)
+  {
+    let value = this.get (selector).value;
+
+    if (this.song[key] === value)
+      return false;
+
+    this.song[key] = value;
+    return true;
   }
 
   apply ()
   {
     console.log ('song-properties.js', 'apply');
 
-    this.song.title  = this.get ('#song-title').value;
-    this.song.artist = this.get ('#song-artist').value;
+    let edits = 0;
+    edits += this.apply_input ('title',  '#song-title');
+    edits += this.apply_input ('artist', '#song-artist');
 
     switch (this.song.type)
     {
       case 'mp3+cdg':
-        this.apply_cdg ();
+        edits += this.apply_cdg ();
         break;
 
       case 'karafun':
-        this.apply_karafun ();
+        edits += this.apply_karafun ();
         break;
 
       case 'singking':
-        this.apply_singking ();
+        edits += this.apply_singking ();
         break;
 
       default:
         console.log (this.song.type);
     }
 
+    if (edits > 0)
+    {
+      this.song.download = true;
+      this.onsuccess (this.song, 'Modifications effectuées');
+    }
+
     let dir = 'songs/' + this.song.id;
-    let icon = this.get ('#song-icon input').value;
     console.log (dir);
 
-    this.modal.hide ();
+    let background = this.get ('#song-background input').value;
+    if (background.length > 0)
+    {
+      console.log ('background', background);
 
+      let q = new URLSearchParams ([['url', background], ['dir', dir]]);
+      let url = 'youtube-dl.php?' + q.toString ();
+      console.log (url);
+
+      fetch (url).
+        then (r => r.json ()).
+        then (json => {
+          if (json.success)
+          {
+            let ytdl = json.result;
+            let filename = ytdl.id + '.' + ytdl.format_id + '.' + ytdl.ext;
+            this.song.background = filename;
+            this.song.download = true;
+            this.onsuccess (this.song, 'Arrière-plan téléchargé !');
+          }
+          else
+            this.onerror (this.song, json.error);
+        }).
+        catch (e => {
+          console.log (e);
+          this.onerror (this.song, e);
+        });
+    }
+
+    let icon = this.get ('#song-icon input').value;
     if (icon.length > 0)
     {
-      console.log (icon);
+      console.log ('icon', icon);
 
       let q = new URLSearchParams ([['url', icon], ['dir', dir]]);
       let url = 'icon.php?' + q.toString ();
@@ -289,14 +340,15 @@ class Properties
           {
             console.log (json.result);
             this.song.icon = json.result;
-            this.onsuccess (this.song);
+            this.song.download = true;
+            this.onsuccess (this.song, 'Illustration téléchargée !');
           }
           else
             this.onerror (this.song, json.error);
         });
     }
-    else
-      this.onsuccess (this.song);
+
+    this.modal.hide ();
   }
 }
 

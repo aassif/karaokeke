@@ -2,8 +2,11 @@
 
 header ('Content-Type: application/json');
 
-define ('FORMAT', 'bestvideo[height<=720,ext=mp4]+bestaudio[ext=m4a]/mp4');
+define ('FORMAT', 'bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/mp4[height<=720]');
 define ('OUTPUT', '%(id)s.%(format_id)s.%(ext)s');
+
+//define ('YTDL', "youtube-dl --print-json -f '%s' -o '%s/%s' %s");
+define ('YTDL', "yt-dlp -j --no-simulate --no-progress -f '%s' -o '%s/%s' %s");
 
 function error ($message)
 {
@@ -13,19 +16,12 @@ function error ($message)
 
 function f ($url, $output)
 {
-  if (! file_exists ($output))
-  {
-    $command = sprintf ("youtube-dl --print-json -f '%s' -o '%s/%s' %s", FORMAT, $_GET['dir'], OUTPUT, $_GET['url']);
-    $ytdl = shell_exec ($command);
-    if ($ytdl)
-      printf ('{"success" : true, "result" : %s}', $ytdl);
-    else
-      error ('ytdl', $command);
-  }
+  $command = sprintf (YTDL, FORMAT, $_GET['dir'], OUTPUT, $_GET['url']);
+  $ytdl = shell_exec ($command);
+  if ($ytdl)
+    printf ('{"success" : true, "result" : %s}', $ytdl);
   else
-  {
-    error ('file_exists', $output);
-  }
+    error ('ytdl', $command);
 }
 
 if (! array_key_exists ('url', $_GET))
