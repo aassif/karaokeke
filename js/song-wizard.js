@@ -37,7 +37,8 @@ class Wizard
 
     this.modal.hide ();
 
-    let q = new URLSearchParams ([['url', video], ['output', 'songs/' + id + '/lyrics.mp4']]);
+    let dir = 'songs/' + id;
+    let q = new URLSearchParams ([['url', video], ['dir', dir]]);
     let url = 'youtube-dl.php?' + q.toString ();
     console.log (url);
 
@@ -45,7 +46,11 @@ class Wizard
       then (r => r.json ()).
       then (json => {
         if (json.success)
-          this.onsuccess ({artist, title, type, video: 'lyrics.mp4', id, download: true});
+        {
+          let ytdl = json.result;
+          let filename = ytdl.id + '.' + ytdl.format_id + '.' + ytdl.ext;
+          this.onsuccess ({artist, title, type, video: filename, id, download: true});
+        }
         else
           this.onerror ({artist, title, message: json.error});
       });
