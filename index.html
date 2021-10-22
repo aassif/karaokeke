@@ -121,7 +121,7 @@
                 <input class="form-control"></input>
               </div>
               <div id="song-icon" class="form-group mt-2" style="display:none;">
-                <label>Illustration</label>
+                <label>Pochette</label>
                 <input class="form-control"></input>
               </div>
               <button type="submit" class="d-none">Bouton caché mais nécessaire</button>
@@ -212,6 +212,7 @@
     <!-- Toasts -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
     <script type="module">
+      import * as file   from "./js/file.js";
       import * as media  from "./js/media.js";
       import Camera      from "./js/camera.js";
       import VideoChroma from "./js/video-chroma.js";
@@ -222,21 +223,7 @@
 
       let songs = [];
       let selection = [];
-      let confirm_reload = true; // FIXME?
-
-      function dl (song)
-      {
-        let id = song.id;
-        let o = {...song};
-        delete o.id;
-        delete o.download;
-
-        let a = document.createElement ('a');
-        let file = new Blob ([JSON.stringify (o, null, 2)], {type: 'text/json'});
-        a.href = URL.createObjectURL (file);
-        a.download = id + '.json';
-        a.click ();
-      }
+      let confirm_reload = false;
 
       let toasts = document.querySelector ('.toast-container');
       function toast_message (background, icon, title, message)
@@ -281,9 +268,14 @@
       // Propriétés d'une chanson.
       let properties = new Properties ('song-properties',
         (song, message) => {
-          confirm_reload = true;
-          toast_success (song.artist + ' - ' + song.title, message);
-          song_list ();
+          file.SAVE (song).
+            then (() => {
+              toast_success (song.artist + ' - ' + song.title, message);
+              song_list ();
+            }).
+            catch (error => {
+              toast_error (song.artist + ' - ' + song.title, error);
+            });
         },
         (song, error) => {
           toast_error (song.artist + ' - ' + song.title, error);
@@ -292,28 +284,19 @@
       // Téléchargement d'une nouvelle vidéo.
       let wizard = new Wizard ('new-song',
         song => {
-          confirm_reload = true;
-          toast_success (song.artist + ' - ' + song.title, 'Téléchargement terminé');
-          songs.unshift (song);
-          song_list ();
+          file.SAVE (song).
+            then (() => {
+              toast_success (song.artist + ' - ' + song.title, 'Téléchargement terminé');
+              songs.push (song);
+              song_list ();
+            }).
+            catch (error => {
+              toast_error (song.artist + ' - ' + song.title, error);
+            });
         },
         error => {
           toast_error (error.artist + ' - ' + error.title, error.message);
         });
-
-      function fetch_song (id)
-      {
-        return fetch ('songs/' + id + '/song.json').
-          then (r => r.json ()).
-          then (json => songs.push ({...json, id}));
-      }
-
-      function fetch_songs (file)
-      {
-        return fetch ('songs.php').
-          then (r => r.json ()).
-          then (json => Promise.all (json.map (id => fetch_song (id))));
-      }
 
       function song_item_icon (song)
       {
@@ -344,11 +327,9 @@
         text.className = 'd-flex flex-column flex-grow-1 m-1';
         text.append (title, artist);
 
-        let download = document.createElement ('button');
-        download.className = 'btn';
-        download.innerHTML = '<i class="bi-exclamation-triangle text-warning"></i>';
-        download.style.display = song.download ? 'block' : 'none';
-        download.onclick = () => dl (song);
+        let warning = document.createElement ('i');
+        warning.className = 'bi-exclamation-triangle text-warning';
+        warning.style.display = song.warning ? 'block' : 'none';
 
         let settings = document.createElement ('button');
         settings.className = 'btn';
@@ -357,7 +338,7 @@
 
         let li = document.createElement ('li');
         li.className = 'list-group-item d-flex flex-row align-items-center';
-        li.append (img, text, download, settings);
+        li.append (img, text, warning, settings);
         return li;
       }
 
@@ -512,23 +493,10 @@
           });
         });
 
-        function SONG_ORDER (s1, s2)
-        {
-          const o = new Intl.Collator ('fr', {sensitivity: 'base'});
-
-          let t = o.compare (s1.title, s2.title);
-          if (t != 0) return t;
-
-          let a = o.compare (s1.artist, s2.artist);
-          if (a != 0) return a;
-
-          return 0;
-        }
-
-        fetch_songs ('songs.json').
-          then (() => {
-            songs = songs.sort (SONG_ORDER);
-            selection = songs;
+        file.FETCH ('songs.php').
+          then (data => {
+            songs = data;
+            selection = data;
             song_list ();
           });
 

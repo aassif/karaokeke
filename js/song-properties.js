@@ -268,7 +268,8 @@ class Properties
     edits += this.apply_input ('title',  '#song-title');
     edits += this.apply_input ('artist', '#song-artist');
 
-    switch (this.song.type)
+    let song = this.song;
+    switch (song.type)
     {
       case 'mp3+cdg':
         edits += this.apply_cdg ();
@@ -283,16 +284,13 @@ class Properties
         break;
 
       default:
-        console.log (this.song.type);
+        console.log (song.type);
     }
 
     if (edits > 0)
-    {
-      this.song.download = true;
-      this.onsuccess (this.song, 'Modifications effectuées');
-    }
+      this.onsuccess (song, 'Modifications enregistrées');
 
-    let dir = 'songs/' + this.song.id;
+    let dir = 'songs/' + song.id;
     console.log (dir);
 
     let background = this.get ('#song-background input').value;
@@ -311,16 +309,15 @@ class Properties
           {
             let ytdl = json.result;
             let filename = ytdl.id + '.' + ytdl.format_id + '.' + ytdl.ext;
-            this.song.background = filename;
-            this.song.download = true;
-            this.onsuccess (this.song, 'Arrière-plan téléchargé !');
+            song.background = filename;
+            this.onsuccess (song, 'Arrière-plan téléchargé');
           }
           else
-            this.onerror (this.song, json.error);
+            this.onerror (song, json.error);
         }).
         catch (e => {
           console.log (e);
-          this.onerror (this.song, e);
+          this.onerror (song, e);
         });
     }
 
@@ -340,8 +337,7 @@ class Properties
           {
             console.log (json.result);
             this.song.icon = json.result;
-            this.song.download = true;
-            this.onsuccess (this.song, 'Illustration téléchargée !');
+            this.onsuccess (this.song, 'Pochette téléchargée');
           }
           else
             this.onerror (this.song, json.error);

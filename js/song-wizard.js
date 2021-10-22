@@ -48,7 +48,7 @@ class Wizard
         {
           let ytdl = json.result;
           let filename = ytdl.id + '.' + ytdl.format_id + '.' + ytdl.ext;
-          this.onsuccess ({artist, title, type, video: filename, id, download: true});
+          this.onsuccess ({artist, title, type, video: filename, id, warning: true});
         }
         else
           this.onerror ({artist, title, message: json.error});

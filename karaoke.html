@@ -109,6 +109,7 @@
         {
           if (! karaoke.camera.constraints)
           {
+            console.log ('ready');
             window.opener.postMessage ('ready');
             setTimeout (ready, 1000);
           }
