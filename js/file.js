@@ -1,14 +1,18 @@
-function ORDER (s1, s2)
+function ORDER (order)
 {
+  console.log (order);
   const o = new Intl.Collator ('fr', {sensitivity: 'base'});
 
-  let t = o.compare (s1.title, s2.title);
-  if (t != 0) return t;
+  return function (s1, s2)
+  {
+    for (let key of order)
+    {
+      let c = o.compare (s1[key], s2[key]);
+      if (c != 0) return c;
+    }
 
-  let a = o.compare (s1.artist, s2.artist);
-  if (a != 0) return a;
-
-  return 0;
+    return 0;
+  }
 }
 
 function WARNING_KEYS (song, ...keys)
@@ -51,13 +55,13 @@ function FETCH_SONG (id)
     });
 }
 
-function FETCH (url)
+function FETCH (url, order = ['title', 'artist'])
 {
   let songs = [];
   return fetch (url).
     then (r => r.json ()).
     then (json => Promise.all (json.map (id => FETCH_SONG (id).then (song => songs.push (song))))).
-    then (() => songs.sort (ORDER));
+    then (() => songs.sort (ORDER (order)));
 }
 
 function SAVE (song)

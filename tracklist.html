@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <title>📋</title>
+    <style>
+      .songs {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        font-size: 100%;
+        columns: 3;
+      }
+      .song {
+        display: flex;
+        flex-wrap: wrap;
+        break-inside: avoid;
+      }
+      .artist {
+        text-align: justify;
+        text-align-last: right;
+        padding-left: 1em;
+        text-indent: -1em;
+        margin-right: 0.25em;
+      }
+      .leader {
+        flex-grow: 1;
+        text-align: right;
+        background: linear-gradient(180deg,
+          transparent calc(0.58em),
+          black       calc(0.58em),
+          black       calc(0.62em),
+          transparent calc(0.62em)
+        );
+      }
+      .title {
+        padding-left: 0.25em;
+        background: white;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import {FETCH} from "./js/file.js";
+      let ul = document.createElement ('ul');
+      ul.className = 'songs';
+      FETCH ('songs.php', ['artist', 'title']).
+        then (songs => {
+          songs.forEach (song => {
+            let li = document.createElement ('li');
+            li.className = 'song';
+            let artist = '<span class="artist">' + song.artist + '</span>';
+            let title  = '<span class="title">'  + song.title  + '</span>';
+            let leader = '<span class="leader">' + title + '</span>';
+            li.innerHTML = artist + leader;
+            ul.appendChild (li);
+          });
+          document.body.appendChild (ul);
+        });
+    </script>
+  </body>
+</html>
