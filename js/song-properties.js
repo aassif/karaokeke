@@ -1,4 +1,5 @@
-import * as media from "./media.js";
+import * as media    from "./media.js";
+import {QUERY, SAVE} from "./file.js";
 
 const COLOR = rgb => '#' + rgb.map (x => x.toString (16).padStart (2, '0')).join ('');
 
@@ -46,30 +47,35 @@ const BLOCK_HIDE = block => BLOCK_SET (block, 'none',  true);
 
 class Properties
 {
-  constructor (id, onsuccess, onerror)
+  constructor (id, on_success, on_error)
   {
     this.root = document.getElementById (id);
     this.modal = new bootstrap.Modal (this.root);
-    this.get ('form').onsubmit = () => {this.apply (); return false;};
-    this.get ('.btn-primary').onclick = () => {this.apply ();};
-    this.onsuccess = onsuccess;
-    this.onerror = onerror;
+    this.select ('form').onsubmit = () => {this.apply (); return false;};
+    this.select ('.btn-primary').onclick = () => {this.apply ();};
+    this.on_success = on_success;
+    this.on_error   = on_error;
   }
 
-  get (selector)
+  select (selector)
   {
     return this.root.querySelector (selector);
   }
 
+  value (selector)
+  {
+    return this.select (selector).value;
+  }
+
   set (selector, value)
   {
-    this.get (selector).value = value;
+    this.select (selector).value = value;
   }
 
   show_cdg ()
   {
     // Affichage du bloc dédié.
-    let cdg = this.get ('#song-cdg');
+    let cdg = this.select ('#song-cdg');
     BLOCK_SHOW (cdg);
     // Variables dédiées.
     this.set ('#song-cdg-audio', this.song.audio);
@@ -84,7 +90,7 @@ class Properties
 
   apply_cdg ()
   {
-    return false;
+    return this.apply_input ('cdg-height', 'input[name="song-cdg-height"]:checked');
   }
 
   show_karafun ()
@@ -92,10 +98,10 @@ class Properties
     // Variables locales.
     let active = -1;
     // Affichage du bloc KaraFun.
-    let karafun = this.get ('#song-karafun');
+    let karafun = this.select ('#song-karafun');
     BLOCK_SHOW (karafun);
     // Propriétés KaraFun.
-    let colors = this.get ('#song-karafun-colors');
+    let colors = this.select ('#song-karafun-colors');
     let data = this.song['karafun-colors'] || [];
     data.forEach ((c, k) => {
       let button = BUTTON_COLOR (c);
@@ -127,7 +133,7 @@ class Properties
       colors.appendChild (plus);
       plus.onclick = callback (data.length);
     }
-    let video = this.get ('#song-karafun-video');
+    let video = this.select ('#song-karafun-video');
     media.LOAD (video, 'songs/' + this.song.id + '/' + this.song.video).
       then (() => {
         video.play ();
@@ -142,7 +148,7 @@ class Properties
           }
         });
       });
-    let pause = this.get ('#song-karafun-pause');
+    let pause = this.select ('#song-karafun-pause');
     pause.innerHTML = '<i class="bi-pause-fill"></i>';
     pause.onclick = () => {
       if (video.paused)
@@ -173,17 +179,22 @@ class Properties
 
     let c0 = this.song['karafun-colors'] || [];
     let m = c0.length !== c1.length || c0.some ((v, k) => c0[k] !== c1[k]);
-    this.song['karafun-colors'] = c1;
+
+    if (c1.length > 0)
+      this.song['karafun-colors'] = c1;
+    else
+      delete this.song['karafun-colors'];
+
     return m;
   }
 
   show_singking ()
   {
     // Affichage du bloc SingKing.
-    let singking = this.get ('#song-singking');
+    let singking = this.select ('#song-singking');
     BLOCK_SHOW (singking);
     // Propriétés SingKing.
-    let video = this.get ('#song-singking-video');
+    let video = this.select ('#song-singking-video');
     media.LOAD (video, 'songs/' + this.song.id + '/' + this.song.video).
       then (() => {
         video.play ();
@@ -204,7 +215,7 @@ class Properties
   show (song)
   {
     // Remise à zéro.
-    this.get ('form').reset ();
+    this.select ('form').reset ();
 
     // Chanson en cours d'édition.
     this.song = song;
@@ -214,11 +225,11 @@ class Properties
     this.set ('#song-artist', this.song.artist);
 
     // Vidéo de fond.
-    let background = this.get ('#song-background');
+    let background = this.select ('#song-background');
     if (! this.song.background) BLOCK_SHOW (background);
 
     // Jaquette.
-    let icon = this.get ('#song-icon');
+    let icon = this.select ('#song-icon');
     if (! this.song.icon) BLOCK_SHOW (icon);
 
     switch (this.song.type)
@@ -251,13 +262,29 @@ class Properties
 
   apply_input (key, selector)
   {
-    let value = this.get (selector).value;
+    let value = this.value (selector);
 
     if (this.song[key] === value)
       return false;
 
     this.song[key] = value;
     return true;
+  }
+
+  apply_url (selector, path, callback, message)
+  {
+    let song = this.song;
+    let url = this.value (selector);
+    let dir = 'songs/' + song.id;
+
+    if (url.length > 0)
+      QUERY (path, {url, dir}).
+        then (r => {
+          callback (song, r);
+          return SAVE (song);
+        }).
+        then (() => this.on_success (song, message)).
+        catch (e => this.on_error (song, e));
   }
 
   apply ()
@@ -268,81 +295,33 @@ class Properties
     edits += this.apply_input ('title',  '#song-title');
     edits += this.apply_input ('artist', '#song-artist');
 
-    let song = this.song;
-    switch (song.type)
+    switch (this.song.type)
     {
-      case 'mp3+cdg':
-        edits += this.apply_cdg ();
-        break;
-
-      case 'karafun':
-        edits += this.apply_karafun ();
-        break;
-
-      case 'singking':
-        edits += this.apply_singking ();
-        break;
+      case 'mp3+cdg'  : edits += this.apply_cdg      (); break;
+      case 'karafun'  : edits += this.apply_karafun  (); break;
+      case 'singking' : edits += this.apply_singking (); break;
 
       default:
-        console.log (song.type);
+        console.log (this.song.type);
     }
 
     if (edits > 0)
-      this.onsuccess (song, 'Modifications enregistrées');
-
-    let dir = 'songs/' + song.id;
-    console.log (dir);
-
-    let background = this.get ('#song-background input').value;
-    if (background.length > 0)
     {
-      console.log ('background', background);
-
-      let q = new URLSearchParams ([['url', background], ['dir', dir]]);
-      let url = 'youtube-dl.php?' + q.toString ();
-      console.log (url);
-
-      fetch (url).
-        then (r => r.json ()).
-        then (json => {
-          if (json.success)
-          {
-            let ytdl = json.result;
-            let filename = ytdl.id + '.' + ytdl.format_id + '.' + ytdl.ext;
-            song.background = filename;
-            this.onsuccess (song, 'Arrière-plan téléchargé');
-          }
-          else
-            this.onerror (song, json.error);
-        }).
-        catch (e => {
-          console.log (e);
-          this.onerror (song, e);
-        });
+      let song = this.song;
+      SAVE (song).
+        then (() => this.on_success (song, 'Modifications enregistrées')).
+        catch (e => this.on_error (song, e));
     }
 
-    let icon = this.get ('#song-icon input').value;
-    if (icon.length > 0)
-    {
-      console.log ('icon', icon);
+    this.apply_url ('#song-background input',
+      'youtube-dl.php',
+      (song, r) => {song.background = r.id + '.' + r.format_id + '.' + r.ext;},
+      'Arrière-plan téléchargé');
 
-      let q = new URLSearchParams ([['url', icon], ['dir', dir]]);
-      let url = 'icon.php?' + q.toString ();
-      console.log (url);
-
-      fetch (url).
-        then (r => r.json ()).
-        then (json => {
-          if (json.success)
-          {
-            console.log (json.result);
-            this.song.icon = json.result;
-            this.onsuccess (this.song, 'Pochette téléchargée');
-          }
-          else
-            this.onerror (this.song, json.error);
-        });
-    }
+    this.apply_url ('#song-icon input',
+      'icon.php',
+      (song, r) => {song.icon = r;},
+      'Pochette téléchargée');
 
     this.modal.hide ();
   }

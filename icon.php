@@ -1,17 +1,17 @@
 <?php
 
-if (! array_key_exists ('url', $_GET))
-  error ('url');
-
-if (! array_key_exists ('dir', $_GET))
-  error ('dir');
-
 // Message d'erreur et échec.
 function error ($message)
 {
   printf ('{"success":false,"error":"%s"}', $message);
   exit (1);
 }
+
+if (! array_key_exists ('url', $_GET))
+  error ('url');
+
+if (! array_key_exists ('dir', $_GET))
+  error ('dir');
 
 // Enregistrement du buffer.
 function w ($dir, $file, $data)
@@ -27,7 +27,10 @@ function w ($dir, $file, $data)
 // Chargement du fichier, détection du type MIME et enregistrement.
 function f ($url, $dir)
 {
-  $data = file_get_contents ($url);
+  $data = @file_get_contents ($url);
+  if ($data === false)
+    error ('file_get_contents');
+
   $finfo = finfo_open (FILEINFO_MIME);
   $mime = finfo_buffer ($finfo, $data);
   
@@ -41,6 +44,7 @@ function f ($url, $dir)
       case 'gif'  : w ($dir, 'icon.gif',  $data);
     }
   }
+
   error ('mime_type');
 }
 

@@ -268,14 +268,8 @@
       // Propriétés d'une chanson.
       let properties = new Properties ('song-properties',
         (song, message) => {
-          file.SAVE (song).
-            then (() => {
-              toast_success (song.artist + ' - ' + song.title, message);
-              song_list ();
-            }).
-            catch (error => {
-              toast_error (song.artist + ' - ' + song.title, error);
-            });
+          toast_success (song.artist + ' - ' + song.title, message);
+          song_list ();
         },
         (song, error) => {
           toast_error (song.artist + ' - ' + song.title, error);
@@ -284,18 +278,13 @@
       // Téléchargement d'une nouvelle vidéo.
       let wizard = new Wizard ('new-song',
         song => {
-          file.SAVE (song).
-            then (() => {
-              toast_success (song.artist + ' - ' + song.title, 'Téléchargement terminé');
-              songs.push (song);
-              song_list ();
-            }).
-            catch (error => {
-              toast_error (song.artist + ' - ' + song.title, error);
-            });
+          toast_success (song.artist + ' - ' + song.title, 'Téléchargement terminé');
+          songs.push (song);
+          songs = songs.sort (file.ORDER ());
+          song_list ();
         },
-        error => {
-          toast_error (error.artist + ' - ' + error.title, error.message);
+        (song, error) => {
+          toast_error (song.artist + ' - ' + song.title, error);
         });
 
       function song_item_icon (song)

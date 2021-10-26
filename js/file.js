@@ -1,4 +1,4 @@
-function ORDER (order)
+function ORDER (order = ['title', 'artist'])
 {
   console.log (order);
   const o = new Intl.Collator ('fr', {sensitivity: 'base'});
@@ -64,6 +64,18 @@ function FETCH (url, order = ['title', 'artist'])
     then (() => songs.sort (ORDER (order)));
 }
 
+function QUERY (path, params)
+{
+  let url = path + '?' + new URLSearchParams (params);
+  console.log (url);
+
+  return fetch (url).
+    then (r => r.json ()).
+    then (json => json.success
+      ? Promise.resolve (json.result)
+      : Promise.reject (json.error));
+}
+
 function SAVE (song)
 {
   let dir = 'songs/' + song.id;
@@ -74,15 +86,8 @@ function SAVE (song)
   let json = JSON.stringify (o, null, 2);
 
   console.log (dir, json);
-
-  let q = new URLSearchParams ([['dir', dir], ['song', json]]);
-  let url = 'save.php?' + q.toString ();
-  console.log (url);
-
-  return fetch (url).
-    then (r => r.json ()).
-    then (json => json.success ? Promise.resolve (song) : Promise.reject (json.error));
+  return QUERY ('save.php', {dir, song: json});
 }
 
-export {FETCH, SAVE};
+export {FETCH, QUERY, SAVE, ORDER};
 

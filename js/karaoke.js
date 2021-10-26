@@ -149,16 +149,16 @@ class Karaoke
     this.stop ();
 
     // Chemin d'un fichier.
-    let P = f => 'songs/' + song.id + '/' + f;
+    let P = k => 'songs/' + song.id + '/' + song[k];
 
     switch (song.type)
     {
       case 'mp3+cdg':
       {
-        let audio = P (song.audio);
-        let lyrics = P (song.lyrics);
+        let audio = P ('audio');
+        let lyrics = P ('lyrics');
         let height = song['cdg-height'] || DEFAULT_CDG_HEIGHT;
-        let background = song['background'] ? P (song['background']) : DEFAULT_BACKGROUND;
+        let background = song['background'] ? P ('background') : DEFAULT_BACKGROUND;
         let offset = song['background-offset'] || 0;
         this.play_cdg (audio, lyrics, background, offset, height);
         break;
@@ -166,9 +166,9 @@ class Karaoke
 
       case 'karafun':
       {
-        let video = P (song.video);
+        let video = P ('video');
         let colors = song['karafun-colors'] || [];
-        let background = song['background'] ? P (song['background']) : video;
+        let background = song['background'] ? P ('background') : video;
         let offset = song['background-offset'] || 0;
         this.play_karafun (video, colors, background, offset);
         break;
@@ -176,8 +176,8 @@ class Karaoke
 
       case 'singking':
       {
-        let video = P (song.video);
-        let background = song['background'] ? P (song['background']) : video;
+        let video = P ('video');
+        let background = song['background'] ? P ('background') : video;
         let offset = song['background-offset'] || 0;
         this.play_singking (video, background, offset);
         break;
