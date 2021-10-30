@@ -1,5 +1,6 @@
 import Camera        from "./camera.js";
 import LyricsCDG     from "./lyrics-cdg.js";
+import LyricsXML     from "./lyrics-xml.js";
 import VideoChroma   from "./video-chroma.js";
 import VideoKaraFun  from "./video-karafun.js";
 import VideoSingKing from "./video-singking.js";
@@ -94,6 +95,30 @@ class Karaoke
     });
   }
 
+  play_karafun_xml (mp4, xml, background, offset)
+  {
+    this.song = {
+      type: 'karafun-xml',
+      lyrics: new LyricsXML (),
+      audio: document.createElement ('audio')
+    };
+
+    let promises =
+    [
+      this.song.lyrics.load (xml),
+      media.LOAD (this.song.audio, mp4),
+      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
+    ];
+
+    Promise.all (promises).then (() => {
+      this.song.lyrics.play ();
+      this.lyrics.appendChild (this.song.lyrics.canvas);
+      this.items.add (this.song.lyrics);
+      this.song.audio.play ();
+      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
+    });
+  }
+
   play_karafun (video, colors, background, offset)
   {
     this.song = {
@@ -164,6 +189,16 @@ class Karaoke
         break;
       }
 
+      case 'karafun-xml':
+      {
+        let audio = P ('audio');
+        let lyrics = P ('lyrics');
+        let background = song['background'] ? P ('background') : DEFAULT_BACKGROUND;
+        let offset = song['background-offset'] || 0;
+        this.play_karafun_xml (audio, lyrics, background, offset);
+        break;
+      }
+
       case 'karafun':
       {
         let video = P ('video');
@@ -193,6 +228,7 @@ class Karaoke
     switch (this.song.type)
     {
       case 'mp3+cdg':
+      case 'karafun-xml':
         this.lyrics.removeChild (this.song.lyrics.canvas);
         this.items.remove (this.song.lyrics);
         this.song.lyrics.stop ();
