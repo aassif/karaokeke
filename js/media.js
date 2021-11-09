@@ -1,15 +1,24 @@
-function LOAD (media, path, offset = 0)
+function BLOB (media, blob, {offset = 0, volume = 1} = {})
+{
+  let promise = new Promise (resolve => {
+    media.addEventListener ('canplaythrough', () => resolve (media));
+  })
+  media.src = URL.createObjectURL (blob);
+  media.currentTime = offset < 0 ? -offset/1000 : 0;
+  media.volume = volume;
+  return promise;
+}
+
+function LOAD (media, path, {offset = 0, volume = 1} = {})
 {
   return fetch (path).
     then (response => response.blob ()).
-    then (blob => {
-      let promise = new Promise (resolve => {
-        media.addEventListener ('canplaythrough', resolve);
-      })
-      media.src = URL.createObjectURL (blob);
-      media.currentTime = offset;
-      return promise;
-    });
+    then (blob => BLOB (media, blob, {offset, volume}));
+}
+
+function PLAY (media, offset)
+{
+  setTimeout (() => media.play (), offset > 0 ? offset : 0);
 }
 
 function DISPOSE (media)
@@ -35,5 +44,5 @@ function ONCLICK (media, callback)
   };
 }
 
-export {LOAD, DISPOSE, ONCLICK};
+export {BLOB, LOAD, PLAY, DISPOSE, ONCLICK};
 

@@ -1,6 +1,7 @@
 import Camera        from "./camera.js";
 import LyricsCDG     from "./lyrics-cdg.js";
 import LyricsXML     from "./lyrics-xml.js";
+import LyricsKFN     from "./lyrics-kfn.js";
 import VideoChroma   from "./video-chroma.js";
 import VideoKaraFun  from "./video-karafun.js";
 import VideoSingKing from "./video-singking.js";
@@ -83,7 +84,7 @@ class Karaoke
     [
       this.song.lyrics.load (cdg, height),
       media.LOAD (this.song.audio, mp3),
-      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
+      media.LOAD (this.background, background, {offset})
     ];
 
     Promise.all (promises).then (() => {
@@ -91,7 +92,7 @@ class Karaoke
       this.lyrics.appendChild (this.song.lyrics.canvas);
       this.items.add (this.song.lyrics);
       this.song.audio.play ();
-      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
+      media.PLAY (this.background, offset);
     });
   }
 
@@ -107,7 +108,7 @@ class Karaoke
     [
       this.song.lyrics.load (xml),
       media.LOAD (this.song.audio, mp4),
-      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
+      media.LOAD (this.background, background, {offset})
     ];
 
     Promise.all (promises).then (() => {
@@ -115,7 +116,28 @@ class Karaoke
       this.lyrics.appendChild (this.song.lyrics.canvas);
       this.items.add (this.song.lyrics);
       this.song.audio.play ();
-      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
+      media.PLAY (this.background, offset);
+    });
+  }
+
+  play_karafun_kfn (kfn, background, offset)
+  {
+    this.song = {
+      type: 'karafun-kfn',
+      karafun: new LyricsKFN ()
+    };
+
+    let promises =
+    [
+      this.song.karafun.load (kfn),
+      media.LOAD (this.background, background, {offset})
+    ];
+
+    Promise.all (promises).then (() => {
+      this.song.karafun.play ();
+      this.lyrics.appendChild (this.song.karafun.canvas);
+      this.items.add (this.song.karafun);
+      media.PLAY (this.background, offset);
     });
   }
 
@@ -130,7 +152,7 @@ class Karaoke
     let promises =
     [
       media.LOAD (this.song.video, video),
-      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
+      media.LOAD (this.background, background, {offset})
     ];
 
     Promise.all (promises).then (() => {
@@ -140,7 +162,7 @@ class Karaoke
         let listener = () => this.items.add (this.song.lyrics);
         this.song.video.addEventListener ('timeupdate', listener, {once: true});
       });
-      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
+      media.PLAY (this.background, offset);
     });
   }
 
@@ -155,7 +177,7 @@ class Karaoke
     let promises =
     [
       media.LOAD (this.song.video, video),
-      media.LOAD (this.background, background, offset < 0 ? -offset/1000 : 0)
+      media.LOAD (this.background, background, {offset})
     ];
 
     Promise.all (promises).then (() => {
@@ -165,7 +187,7 @@ class Karaoke
         let listener = () => this.items.add (this.song.lyrics);
         this.song.video.addEventListener ('timeupdate', listener, {once: true});
       });
-      setTimeout (() => this.background.play (), offset > 0 ? offset : 0);
+      media.PLAY (this.background, offset);
     });
   }
 
@@ -196,6 +218,15 @@ class Karaoke
         let background = song['background'] ? P ('background') : DEFAULT_BACKGROUND;
         let offset = song['background-offset'] || 0;
         this.play_karafun_xml (audio, lyrics, background, offset);
+        break;
+      }
+
+      case 'karafun-kfn':
+      {
+        let file = P ('file');
+        let background = song['background'] ? P ('background') : DEFAULT_BACKGROUND;
+        let offset = song['background-offset'] || 0;
+        this.play_karafun_kfn (file, background, offset);
         break;
       }
 
@@ -233,6 +264,13 @@ class Karaoke
         this.items.remove (this.song.lyrics);
         this.song.lyrics.stop ();
         media.DISPOSE (this.song.audio);
+        this.song = {type: null};
+        break;
+
+      case 'karafun-kfn':
+        this.lyrics.removeChild (this.song.karafun.canvas);
+        this.items.remove (this.song.karafun);
+        this.song.karafun.stop ();
         this.song = {type: null};
         break;
 
