@@ -1,4 +1,4 @@
-import {QUERY} from "./file.js";
+import {QUERY, SAVE} from "./file.js";
 
 function STR (s)
 {
