@@ -25,7 +25,7 @@ Idem pour *Boostrap Icons* qui doit se trouver dans `bootstrap-icons`.
 La bibliothèque doit être téléchargée [ici](https://github.com/brix/crypto-js/tags)
 puis extraite dans un répertoire nommé `crypto-js`.
 
-## Utilisation
+## Démarrage
 
 Dans un terminal, accédez au répertoire de l'application puis lancez la commande :
 ```
@@ -34,3 +34,8 @@ php -S localhost:5000
 
 Dans un navigateur, tapez `localhost:5000` dans la barre d'adresse.
 
+## Utilisation
+
+La fenêtre principale (💻) permet d'éditer les morceaux, d'en ajouter de nouveaux et de déclencher leur lecture.
+Dès son ouverture, la fenêtre principale ouvre une fenêtre secondaire (🎤) dans laquelle seront joués les titres.
+Cette seconde fenêtre a vocation à être utilisée en retour ou projetée.
