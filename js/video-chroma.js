@@ -1,3 +1,4 @@
+import {RGB}       from "./data.js";
 import VideoShader from "./video-shader.js";
 
 class VideoChroma extends VideoShader
@@ -22,8 +23,7 @@ class VideoChroma extends VideoShader
   update_uniforms ()
   {
     let l = this.locations;
-    let k = this.chroma_key.map (x => x/255);
-    this.gl.uniform3fv (l['chroma_key'],        new Float32Array (k));
+    this.gl.uniform3fv (l['chroma_key'],        RGB (this.chroma_key));
     this.gl.uniform1i  (l['mirror_vertical'],   this.mirror_vertical);
     this.gl.uniform1i  (l['mirror_horizontal'], this.mirror_horizontal);
     this.gl.uniform1f  (l['time'],              this.rotate ? performance.now () / 2000 : 0);

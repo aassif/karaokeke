@@ -1,19 +1,7 @@
+import {PAD, RGB} from "./data.js";
 import VideoShader from "./video-shader.js";
 
 const DEFAULT_COLOR = '#ffffff';
-
-function RGB (hex)
-{
-  const REGEX = /#([0-9a-f]{6})$/i;
-  let m = hex.match (REGEX);
-  return new Float32Array ([0, 2, 4].map (k => parseInt (m[1].substr (k, 2), 16) / 255.0));
-}
-
-function PAD (T, n, zero)
-{
-  let m = T.length;
-  return Array.from ({length: n}, (t, k) => (k < m ? T[k] : (m > 0 ? T[m-1] : zero)));
-}
 
 class VideoKaraFun extends VideoShader
 {

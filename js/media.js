@@ -1,3 +1,5 @@
+import {HEX} from "./data.js";
+
 function BLOB (media, blob, {offset = 0, volume = 1} = {})
 {
   let promise = new Promise (resolve => {
@@ -40,7 +42,7 @@ function ONCLICK (media, callback)
     context.drawImage (media, 0, 0, w, h);
     let [r, g, b] = context.getImageData (e.offsetX, e.offsetY, 1, 1).data;
 
-    callback ([r, g, b]);
+    callback (HEX ([r, g, b]));
   };
 }
 

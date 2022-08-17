@@ -212,6 +212,7 @@
     <!-- Toasts -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3"></div>
     <script type="module">
+      import {PAD}       from "./js/data.js";
       import * as file   from "./js/file.js";
       import * as media  from "./js/media.js";
       import Camera      from "./js/camera.js";
@@ -219,7 +220,9 @@
       import Properties  from "./js/song-properties.js";
       import Wizard      from "./js/song-wizard.js";
 
-      const CAMERA_RATIO = 16/9;
+      const DEFAULT_CAMERA_RATIO = 16/9;
+      const DEFAULT_CHROMA_KEY = "#00ff00";
+      const DEFAULT_SPLASH = "backgrounds/nyan_cat.webm";
 
       let songs = [];
       let selection = [];
@@ -363,12 +366,27 @@
         f.onsubmit = search;
       }
 
+      function load_settings ()
+      {
+        return fetch ("settings.json").then (r => r.json ());
+      }
+
+      function enumerate_cameras (ratio)
+      {
+        return Camera.ENUMERATE (ratio);
+      }
+
       // Fenêtre secondaire.
       let karaoke = window.open ('karaoke.html', 'Karaoke');
       if (karaoke != null)
       {
-        // Webcam
-        Camera.ENUMERATE (CAMERA_RATIO).then (cameras => {
+        // Settings.
+        load_settings ().then (settings => {
+        console.log (settings);
+        let ratio = settings.ratio ?? DEFAULT_CAMERA_RATIO;
+        let splash = settings.splash ?? DEFAULT_SPLASH;
+        // Webcam.
+        enumerate_cameras (ratio).then (cameras => {
           function post_camera ()
           {
             console.log ('post_camera');
@@ -394,7 +412,8 @@
           }
 
           // Clés chromatiques.
-          let chroma_keys = cameras.map (() => [0, 255, 0]); 
+          let chroma_keys = PAD (settings['chroma-keys'], cameras.length, DEFAULT_CHROMA_KEY);
+          console.log (chroma_keys);
           // Caméra par défaut.
           let camera_index = 0;
           // Ajout des caméras à la fenêtre de sélection.
@@ -480,6 +499,7 @@
                 break;
             }
           });
+        });
         });
 
         file.FETCH ('songs.php').

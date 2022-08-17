@@ -1,8 +1,6 @@
 import * as media    from "./media.js";
 import {QUERY, SAVE} from "./file.js";
 
-const COLOR = rgb => '#' + rgb.map (x => x.toString (16).padStart (2, '0')).join ('');
-
 const DEFAULT_COLOR = '#ffffff';
 const DEFAULT_HEIGHT = '50%';
 
@@ -141,10 +139,9 @@ class Properties
           console.log (rgb);
           if (active != -1)
           {
-            let c = COLOR (rgb);
             let buttons = colors.querySelectorAll ('button.karafun-color');
-            buttons [active].setAttribute ('data-karafun-color', c);
-            buttons [active].style.backgroundColor = c;
+            buttons [active].setAttribute ('data-karafun-color', rgb);
+            buttons [active].style.backgroundColor = rgb;
           }
         });
       });
