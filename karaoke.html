@@ -49,6 +49,14 @@
         height: 100%;
         object-fit: contain;
       }
+      #splash {
+        z-index: 3;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
     </style>
   </head>
 
@@ -57,6 +65,7 @@
     <video id="background" muted loop></video>
     <div id="camera"></div>
     <div id="lyrics"></div>
+    <video id="splash" muted loop></video>
     <script src="crypto-js/crypto-js.js"></script>
     <script type="module">
       if (! window.opener)
@@ -65,17 +74,22 @@
       import Karaoke from "./js/karaoke.js";
 
       let karaoke = new Karaoke ();
+      let splash = document.getElementById ('splash');
 
       window.addEventListener ('message', e => {
         let m = e.data;
         switch (m.type)
         {
           case 'play':
+            splash.pause ();
+            splash.style.visibility = 'hidden';
             karaoke.play (m.song);
             break;
 
           case 'stop':
             karaoke.stop ();
+            splash.style.visibility = 'visible';
+            splash.play ();
             break;
 
           case 'camera':
@@ -100,6 +114,11 @@
           case 'rotate':
             if (karaoke.chroma)
               karaoke.chroma.rotate = m.rotate;
+            break;
+
+          case 'splash':
+            splash.src = m.splash;
+            splash.play ();
             break;
 
           default:

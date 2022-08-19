@@ -385,6 +385,15 @@
         console.log (settings);
         let ratio = settings.ratio ?? DEFAULT_CAMERA_RATIO;
         let splash = settings.splash ?? DEFAULT_SPLASH;
+
+        function post_splash ()
+        {
+          console.log ('splash', splash);
+          karaoke.postMessage ({type: 'splash', splash});
+        }
+
+        post_splash ();
+
         // Webcam.
         enumerate_cameras (ratio).then (cameras => {
           function post_camera ()
@@ -496,6 +505,7 @@
             {
               case 'ready':
                 post_camera ();
+                post_splash ();
                 break;
             }
           });
