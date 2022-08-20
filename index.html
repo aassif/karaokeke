@@ -366,9 +366,9 @@
         f.onsubmit = search;
       }
 
-      function load_settings ()
+      function load_config ()
       {
-        return fetch ("settings.json").then (r => r.json ());
+        return fetch ("config.json").then (r => r.json ());
       }
 
       function enumerate_cameras (ratio)
@@ -381,10 +381,10 @@
       if (karaoke != null)
       {
         // Settings.
-        load_settings ().then (settings => {
-        console.log (settings);
-        let ratio = settings.ratio ?? DEFAULT_CAMERA_RATIO;
-        let splash = settings.splash ?? DEFAULT_SPLASH;
+        load_config ().then (config => {
+        console.log (config);
+        let ratio = config.ratio ?? DEFAULT_CAMERA_RATIO;
+        let splash = config.splash ?? DEFAULT_SPLASH;
 
         function post_splash ()
         {
@@ -421,7 +421,7 @@
           }
 
           // Clés chromatiques.
-          let chroma_keys = PAD (settings['chroma-keys'], cameras.length, DEFAULT_CHROMA_KEY);
+          let chroma_keys = PAD (config['chroma-keys'], cameras.length, DEFAULT_CHROMA_KEY);
           console.log (chroma_keys);
           // Caméra par défaut.
           let camera_index = 0;
