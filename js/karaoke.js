@@ -41,10 +41,11 @@ class DrawList
   }
 }
 
-class Karaoke
+class Karaoke extends EventTarget
 {
   constructor ()
   {
+    super ();
     this.camera = new Camera ();
     this.lyrics = document.getElementById ('lyrics');
     this.background = document.getElementById ('background');
@@ -91,6 +92,7 @@ class Karaoke
       this.song.lyrics.play ();
       this.lyrics.appendChild (this.song.lyrics.canvas);
       this.items.add (this.song.lyrics);
+      this.song.audio.addEventListener ('ended', () => this.stop ());
       this.song.audio.play ();
       media.PLAY (this.background, offset);
     });
@@ -115,6 +117,7 @@ class Karaoke
       this.song.lyrics.play ();
       this.lyrics.appendChild (this.song.lyrics.canvas);
       this.items.add (this.song.lyrics);
+      this.song.audio.addEventListener ('ended', () => this.stop ());
       this.song.audio.play ();
       media.PLAY (this.background, offset);
     });
@@ -135,6 +138,7 @@ class Karaoke
 
     Promise.all (promises).then (() => {
       this.song.karafun.play ();
+      // FIXME: addEventListener ('ended', ...)
       this.lyrics.appendChild (this.song.karafun.canvas);
       this.items.add (this.song.karafun);
       media.PLAY (this.background, offset);
@@ -156,6 +160,7 @@ class Karaoke
     ];
 
     Promise.all (promises).then (() => {
+      this.song.video.addEventListener ('ended', () => this.stop ());
       this.song.video.play ().then ( () => {
         this.song.lyrics = new VideoKaraFun (this.song.video, colors);
         this.lyrics.appendChild (this.song.lyrics.canvas);
@@ -181,6 +186,7 @@ class Karaoke
     ];
 
     Promise.all (promises).then (() => {
+      this.song.video.addEventListener ('ended', () => this.stop ());
       this.song.video.play ().then (() => {
         this.song.lyrics = new VideoSingKing (this.song.video);
         this.lyrics.appendChild (this.song.lyrics.canvas);
@@ -197,6 +203,9 @@ class Karaoke
 
     // Chemin d'un fichier.
     let P = k => 'songs/' + song.id + '/' + song[k];
+
+    // Événement 'playing' ?
+    let playing = true;
 
     switch (song.type)
     {
@@ -250,12 +259,22 @@ class Karaoke
       }
 
       default:
+        playing = false;
         console.log (song);
+    }
+
+    if (playing)
+    {
+      let e = new Event ('playing');
+      this.dispatchEvent (e);
     }
   }
 
   stop ()
   {
+    // Événement 'ended' ?
+    let ended = true;
+
     switch (this.song.type)
     {
       case 'mp3+cdg':
@@ -264,6 +283,7 @@ class Karaoke
         this.items.remove (this.song.lyrics);
         this.song.lyrics.stop ();
         media.DISPOSE (this.song.audio);
+        media.DISPOSE (this.background);
         this.song = {type: null};
         break;
 
@@ -271,6 +291,7 @@ class Karaoke
         this.lyrics.removeChild (this.song.karafun.canvas);
         this.items.remove (this.song.karafun);
         this.song.karafun.stop ();
+        media.DISPOSE (this.background);
         this.song = {type: null};
         break;
 
@@ -283,11 +304,19 @@ class Karaoke
           this.song.lyrics.dispose ();
         }
         media.DISPOSE (this.song.video);
+        media.DISPOSE (this.background);
         this.song = {type: null};
         break;
+
+      default:
+        ended = false;
     }
 
-    media.DISPOSE (this.background);
+    if (ended)
+    {
+      let e = new Event ('ended');
+      this.dispatchEvent (e);
+    }
   }
 }
 

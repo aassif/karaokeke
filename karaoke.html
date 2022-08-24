@@ -76,20 +76,26 @@
       let karaoke = new Karaoke ();
       let splash = document.getElementById ('splash');
 
+      karaoke.addEventListener ('playing', () => {
+        splash.pause ();
+        splash.style.visibility = 'hidden';
+      });
+
+      karaoke.addEventListener ('ended', () => {
+        splash.style.visibility = 'visible';
+        splash.play ();
+      });
+
       window.addEventListener ('message', e => {
         let m = e.data;
         switch (m.type)
         {
           case 'play':
-            splash.pause ();
-            splash.style.visibility = 'hidden';
             karaoke.play (m.song);
             break;
 
           case 'stop':
             karaoke.stop ();
-            splash.style.visibility = 'visible';
-            splash.play ();
             break;
 
           case 'camera':
