@@ -83,20 +83,28 @@ class LyricsXML extends Renderer
     super ();
   }
 
+  parse_karaoke (xml)
+  {
+    this.karaoke = KARAOKE (xml);
+    console.log (this.karaoke);
+    return this.render ();
+  }
+
+  parse (text)
+  {
+    const parser = new DOMParser ();
+    let xml = parser.parseFromString (text, 'application/xml');
+    let response = xml.documentElement;
+    //console.log (response.getAttribute ('status'));
+    //this.song = response.querySelector ('song'); // FIXME
+    return parse_karaoke (response.querySelector ('karaoke'));
+  }
+
   load (url)
   {
     return fetch (url).
       then (r => r.text ()).
-      then (text => {
-        const parser = new DOMParser ();
-        let xml = parser.parseFromString (text, 'application/xml');
-        let response = xml.documentElement;
-        console.log (response.getAttribute ('status'));
-        //this.song = response.querySelector ('song'); // FIXME
-        this.karaoke = KARAOKE (response.querySelector ('karaoke'));
-        console.log (this.karaoke);
-        return this.render ();
-      });
+      then (text => this.parse (text));
   }
 }
 

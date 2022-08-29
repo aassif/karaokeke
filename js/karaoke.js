@@ -1,10 +1,11 @@
 import Camera        from "./camera.js";
 import LyricsCDG     from "./lyrics-cdg.js";
 import LyricsXML     from "./lyrics-xml.js";
-import LyricsKFN     from "./lyrics-kfn.js";
 import VideoChroma   from "./video-chroma.js";
 import VideoKaraFun  from "./video-karafun.js";
 import VideoSingKing from "./video-singking.js";
+import KaraokeKFN    from "./karaoke-kfn.js";
+import KaraokeKIT    from "./karaoke-kit.js";
 import * as media    from "./media.js";
 
 const DEFAULT_BACKGROUND = 'backgrounds/nyan_cat.webm';
@@ -127,7 +128,7 @@ class Karaoke extends EventTarget
   {
     this.song = {
       type: 'karafun-kfn',
-      karafun: new LyricsKFN ()
+      karafun: new KaraokeKFN ()
     };
 
     let promises =
@@ -138,9 +139,31 @@ class Karaoke extends EventTarget
 
     Promise.all (promises).then (() => {
       this.song.karafun.play ();
-      // FIXME: addEventListener ('ended', ...)
-      this.lyrics.appendChild (this.song.karafun.canvas);
-      this.items.add (this.song.karafun);
+      this.song.karafun.addEventListener ('ended', () => this.stop ())
+      this.lyrics.appendChild (this.song.karafun.lyrics.canvas);
+      this.items.add (this.song.karafun.lyrics);
+      media.PLAY (this.background, offset);
+    });
+  }
+
+  play_karafun_kit (kit, background, offset)
+  {
+    this.song = {
+      type: 'karafun-kit',
+      karafun: new KaraokeKIT ()
+    };
+
+    let promises =
+    [
+      this.song.karafun.load (kit),
+      media.LOAD (this.background, background, {offset})
+    ];
+
+    Promise.all (promises).then (() => {
+      this.song.karafun.play ();
+      this.song.karafun.addEventListener ('ended', () => this.stop ())
+      this.lyrics.appendChild (this.song.karafun.lyrics.canvas);
+      this.items.add (this.song.karafun.lyrics);
       media.PLAY (this.background, offset);
     });
   }
@@ -239,6 +262,15 @@ class Karaoke extends EventTarget
         break;
       }
 
+      case 'karafun-kit':
+      {
+        let file = P ('file');
+        let background = song['background'] ? P ('background') : DEFAULT_BACKGROUND;
+        let offset = song['background-offset'] || 0;
+        this.play_karafun_kit (file, background, offset);
+        break;
+      }
+
       case 'karafun':
       {
         let video = P ('video');
@@ -288,8 +320,9 @@ class Karaoke extends EventTarget
         break;
 
       case 'karafun-kfn':
-        this.lyrics.removeChild (this.song.karafun.canvas);
-        this.items.remove (this.song.karafun);
+      case 'karafun-kit':
+        this.lyrics.removeChild (this.song.karafun.lyrics.canvas);
+        this.items.remove (this.song.karafun.lyrics);
         this.song.karafun.stop ();
         media.DISPOSE (this.background);
         this.song = {type: null};

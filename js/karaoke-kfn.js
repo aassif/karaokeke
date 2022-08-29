@@ -281,7 +281,7 @@ function SONG_TRACKS (song)
   return [t0, ...tracks];
 }
 
-class LyricsKFN extends Renderer
+class KaraokeKFN extends EventTarget
 {
   constructor ()
   {
@@ -333,35 +333,41 @@ class LyricsKFN extends Renderer
         // Mise en page des syllabes.
         let n = parseInt (effect.linecount);
         let colors = SONG_COLORS (effect);
-        this.karaoke = SONG_KARAOKE (lyrics, n, colors);
-        console.log (this.karaoke);
+        this.lyrics = new Renderer ();
+        this.lyrics.karaoke = SONG_KARAOKE (lyrics, n, colors);
+        console.log (this.lyrics.karaoke);
 
         // Pistes audio.
         let tracks = SONG_TRACKS (song);
         console.log (tracks);
 
         this.tracks = tracks.map (() => document.createElement ('audio'));
+        if (tracks.length > 0)
+          this.tracks[0].addEventListener ('ended', () => {
+            let e = new Event ('ended');
+            this.dispatchEvent (e);
+          });
 
         let promises =
           tracks.map (({file, volume}, k) =>
             media.BLOB (this.tracks[k], new Blob ([F (file)]), {volume}));
 
-        return Promise.all (promises).then (() => this.render ());
+        return Promise.all (promises).then (() => this.lyrics.render ());
       });
   }
 
   play ()
   {
-    super.play ();
+    this.lyrics.play ();
     this.tracks.forEach (t => t.play ());
   }
 
   stop ()
   {
-    super.stop ();
+    this.lyrics.stop ();
     this.tracks.forEach (t => media.DISPOSE (t));
   }
 }
 
-export default LyricsKFN;
+export default KaraokeKFN;
 
