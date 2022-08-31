@@ -62,14 +62,21 @@ class KaraokeKIT extends EventTarget
         this.lyrics = new LyricsXML ();
         this.lyrics.parse_karaoke (response.querySelector ('karaoke'));
 
-        let F = selector => response.querySelector (selector).getAttribute ('index');
-
         let files = response.querySelector ('files');
+        let F = selector =>
+          Array.from (files.querySelectorAll (selector)).map (f => f.getAttribute ('index'));
+
+        let I = F ('file[label="ins.ogg"]');
+        let B = F ('file[label="bv.ogg"]');
+        let L = F ('file[label="ld.ogg"],file[label^="ld_"]');
+        console.log (I, B, L);
+
         let tracks =
         [
-          {index: F ('file[label="ins.ogg"]'), volume: 1},
-          {index: F ('file[label="bv.ogg"]'), volume: 1}
-        ]
+          ...I.map (k => ({index: k, volume: 1})),
+          ...B.map (k => ({index: k, volume: 1})),
+          ...L.map (k => ({index: k, volume: 0.1}))
+        ];
 
         this.tracks = tracks.map (() => document.createElement ('audio'));
         if (tracks.length > 0)
