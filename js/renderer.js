@@ -86,6 +86,26 @@ function DRAW_SYLLABLE_FILL (c, p, s, t)
   c.fillText (s.text, s.x1, s.y);
 }
 
+function DRAW_SILENCE_STROKE (c, s, t)
+{
+  let p = s.position;
+  const c0 = s.inactivebordercolor;
+  const c1 = s.activebordercolor;
+  let position = {start: s.start, end: s.end, x1: p.x, x2: p.x + p.width};
+  c.strokeStyle = DRAW_SYLLABLE_PATTERN (c, c0, c1, position, t);
+  c.strokeRect (p.x, p.y, p.width, p.height);
+}
+
+function DRAW_SILENCE_FILL (c, s, t)
+{
+  let p = s.position;
+  const c0 = s.inactivecolor;
+  const c1 = s.activecolor;
+  let position = {start: s.start, end: s.end, x1: p.x, x2: p.x + p.width};
+  c.fillStyle = DRAW_SYLLABLE_PATTERN (c, c0, c1, position, t);
+  c.fillRect (p.x, p.y, p.width, p.height);
+}
+
 class Renderer
 {
   constructor ()
@@ -94,6 +114,7 @@ class Renderer
     canvas.width  = W;
     canvas.height = H;
     this.canvas = canvas;
+    this.canvas.style.height = '100%';
 
     let context = canvas.getContext ('2d');
     context.font = FONT_HEIGHT + 'px' + ' ' + FONT_FAMILY;
@@ -164,6 +185,16 @@ class Renderer
 
     let ctx = this.context;
     ctx.clearRect (0, 0, W, H);
+
+    for (let silence of this.karaoke.silences)
+    {
+      if (t >= silence.start && t < silence.end)
+      {
+        ctx.globalAlpha = 1;
+        DRAW_SILENCE_STROKE (ctx, silence, t)
+        DRAW_SILENCE_FILL   (ctx, silence, t)
+      }
+    }
 
     for (let page of this.karaoke.pages)
     {

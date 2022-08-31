@@ -67,11 +67,30 @@ function PAGE (xml)
   };
 }
 
+function SILENCE (xml)
+{
+  // Couleurs.
+  const COLORS = ['activecolor', 'activebordercolor', 'inactivecolor', 'inactivebordercolor'];
+  let colors = Object.fromEntries (ATTRIBS (xml, ...COLORS));
+  // Position.
+  let position = POSITION (xml.querySelector ('position'));
+  // Synchronisation.
+  let start = TIMECODE (TEXT (xml, 'start'));
+  let end   = TIMECODE (TEXT (xml, 'end'));
+  return {
+    ...colors,
+    position,
+    start, end
+  };
+}
+
 function KARAOKE (xml)
 {
+  let silences = xml.querySelectorAll ('silence');
   let pages = xml.querySelectorAll ('page');
   //let events = xml.querySelectorAll ('event'); // FIXME
   return {
+    silences: Array.from (silences).map (xml => SILENCE (xml)),
     pages: Array.from (pages).map (xml => PAGE (xml))
   };
 }
