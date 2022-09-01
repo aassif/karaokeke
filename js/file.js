@@ -32,6 +32,11 @@ function WARNING (song)
       WARNING_KEYS (song, 'background', 'video', 'karafun-colors');
       break;
 
+    case 'karafun-kfn':
+    case 'karafun-kit':
+      WARNING_KEYS (song, 'background', 'file');
+      break;
+
     case 'singking':
       WARNING_KEYS (song, 'background', 'video');
       break;
