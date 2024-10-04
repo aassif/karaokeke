@@ -6,7 +6,6 @@
 * [yt-dlp](https://github.com/yt-dlp/yt-dlp/) (>= 2021.12.27)
 * [Bootstrap](https://getbootstrap.com/) (>= 5.1.3)
 * [Bootstrap Icons](https://icons.getbootstrap.com/) (>= 1.7.0)
-* [CryptoJS](https://github.com/brix/crypto-js/) (>= 4.1.1)
 
 ### yt-dlp
 
@@ -19,11 +18,6 @@ La bibliothèque *Bootstrap* doit être présente dans un sous-répertoire nomm�
 Il faut donc extraire le contenu de l'archive dans le répertoire principal et renommer le répertoire créé.
 
 Idem pour *Boostrap Icons* qui doit se trouver dans `bootstrap-icons`.
-
-### CryptoJS
-
-La bibliothèque doit être téléchargée [ici](https://github.com/brix/crypto-js/tags)
-puis extraite dans un répertoire nommé `crypto-js`.
 
 ## Démarrage
 

@@ -1,6 +1,8 @@
 import * as media from "./media.js";
 import Renderer   from "./renderer.js";
 
+import decrypt    from "./aes-128-ecb.js";
+
 const TYPE_SONG  = 1;
 const TYPE_AUDIO = 2;
 const TYPE_IMAGE = 3;
@@ -101,34 +103,9 @@ function FILES (d, o)
   return {offset: o, files};
 }
 
-/*
-function DECRYPT (data, raw, length)
-{
-  return crypto.subtle.importKey ('raw', raw, 'AES-ECB', false, ['decrypt']).
-    then (key => {
-      let algo = {name: 'AES-ECB'};
-      console.log (key, algo, data, data.length);
-      return crypto.subtle.decrypt (algo, key, data.slice (16)).
-        then (buffer => buffer.subarray (0, length));
-    });
-}
-*/
-
-function UINT8ARRAY (hex)
-{
-  return new Uint8Array (hex.match (/[0-9a-f]{2}/gi).map (h => parseInt (h, 16)));
-}
-
 function DECRYPT (data, key, length)
 {
-  let k = CryptoJS.lib.WordArray.create (key);
-  let d = CryptoJS.lib.WordArray.create (data);
-  let p = CryptoJS.lib.CipherParams.create ({ciphertext: d});
-  //console.log (k, d, p);
-  let mode = CryptoJS.mode.ECB;
-  let padding = CryptoJS.pad.NoPadding;
-  let r = CryptoJS.AES.decrypt (p, k, {mode, padding});
-  return UINT8ARRAY (r.toString ()).slice (0, length);
+  return decrypt (key, data).subarray (0, length);
 }
 
 function SONG_INI (data)
@@ -260,7 +237,7 @@ function SONG_KARAOKE (lyrics, n, colors)
     pages.push (PAGE (line2, line3));
   }
 
-  return {pages};
+  return {pages, silences: []};
 }
 
 function SONG_TRACKS (song)
